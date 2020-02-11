@@ -34,3 +34,4 @@ Framework/Externals/*
 !Framework/Externals/dear_imgui_addons/
 !Framework/Externals/dear_imgui_addons/imguinodegrapheditor/
 Media
+/Source/Externals/.packman/pybind11
