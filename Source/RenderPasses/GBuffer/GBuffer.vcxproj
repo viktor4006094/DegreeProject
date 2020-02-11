@@ -14,7 +14,7 @@
     <ProjectGuid>{CA155B01-7528-4D81-B5CD-E801B4AA4027}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>GBuffer</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
     <ProjectName>GBuffer</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
