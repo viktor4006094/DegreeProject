@@ -9,14 +9,14 @@
     <FxCompile Include="Data\HelloDXR.ps.hlsl">
       <Filter>Data</Filter>
     </FxCompile>
-    <FxCompile Include="Data\HelloDXR.rt.hlsl">
+    <FxCompile Include="Data\BaselineDXR.rt.hlsl">
       <Filter>Data</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="HelloDXR.cpp" />
+    <ClInclude Include="BaselineDXR.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="HelloDXR.h" />
+    <ClCompile Include="BaselineDXR.cpp" />
   </ItemGroup>
 </Project>

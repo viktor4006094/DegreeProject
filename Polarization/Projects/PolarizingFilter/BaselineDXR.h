@@ -31,7 +31,7 @@
 
 using namespace Falcor;
 
-class HelloDXR : public Renderer
+class BaselineDXR : public Renderer
 {
 public:
     void onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext) override;

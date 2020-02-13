@@ -25,7 +25,7 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ***************************************************************************/
-#include "HelloDXR.h"
+#include "BaselineDXR.h"
 
 static const glm::vec4 kClearColor(0.38f, 0.52f, 0.10f, 1);
 static const std::string kDefaultScene = "Arcade/Arcade.fscene";
@@ -37,7 +37,7 @@ std::string to_string(const vec3& v)
     return s;
 }
 
-void HelloDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
+void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 {
     pGui->addCheckBox("Ray Trace", mRayTrace);
     if (pGui->addButton("Load Scene"))
@@ -56,7 +56,7 @@ void HelloDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
     }
 }
 
-void HelloDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
+void BaselineDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
 {
     mpScene = RtScene::loadFromFile(filename, RtBuildFlags::None, Model::LoadFlags::RemoveInstancing);
     Model::SharedPtr pModel = mpScene->getModel(0);
@@ -83,7 +83,7 @@ void HelloDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
     mpRtRenderer = RtSceneRenderer::create(mpScene);
 }
 
-void HelloDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext)
+void BaselineDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext)
 {
     if (gpDevice->isFeatureSupported(Device::SupportedFeatures::Raytracing) == false)
     {
@@ -91,7 +91,7 @@ void HelloDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext)
     }
 
     RtProgram::Desc rtProgDesc;
-    rtProgDesc.addShaderLibrary("HelloDXR.rt.hlsl").setRayGen("rayGen");
+    rtProgDesc.addShaderLibrary("BaselineDXR.rt.hlsl").setRayGen("rayGen");
     rtProgDesc.addHitGroup(0, "primaryClosestHit", "").addMiss(0, "primaryMiss");
     rtProgDesc.addHitGroup(1, "", "shadowAnyHit").addMiss(1, "shadowMiss");
 
@@ -107,10 +107,12 @@ void HelloDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext)
 
     mpRtState = RtState::create();
     mpRtState->setProgram(mpRaytraceProgram);
-    mpRtState->setMaxTraceRecursionDepth(3); // 1 for calling TraceRay from RayGen, 1 for calling it from the primary-ray ClosestHitShader for reflections, 1 for reflection ray tracing a shadow ray
+
+    // Used to be 3
+    mpRtState->setMaxTraceRecursionDepth(5); // 1 for calling TraceRay from RayGen, 1 for calling it from the primary-ray ClosestHitShader for reflections, 1 for reflection ray tracing a shadow ray
 }
 
-void HelloDXR::renderRaster(RenderContext* pContext)
+void BaselineDXR::renderRaster(RenderContext* pContext)
 {
     mpGraphicsState->setRasterizerState(nullptr);
     mpGraphicsState->setDepthStencilState(nullptr);
@@ -120,7 +122,7 @@ void HelloDXR::renderRaster(RenderContext* pContext)
     mpSceneRenderer->renderScene(pContext, mpCamera.get());
 }
 
-void HelloDXR::setPerFrameVars(const Fbo* pTargetFbo)
+void BaselineDXR::setPerFrameVars(const Fbo* pTargetFbo)
 {
     PROFILE("setPerFrameVars");
     GraphicsVars* pVars = mpRtVars->getGlobalVars().get();
@@ -131,7 +133,7 @@ void HelloDXR::setPerFrameVars(const Fbo* pTargetFbo)
     pCB["tanHalfFovY"] = tanf(fovY * 0.5f);
 }
 
-void HelloDXR::renderRT(RenderContext* pContext, const Fbo* pTargetFbo)
+void BaselineDXR::renderRT(RenderContext* pContext, const Fbo* pTargetFbo)
 {
     PROFILE("renderRT");
     setPerFrameVars(pTargetFbo);
@@ -143,7 +145,7 @@ void HelloDXR::renderRT(RenderContext* pContext, const Fbo* pTargetFbo)
     pContext->blit(mpRtOut->getSRV(), pTargetFbo->getRenderTargetView(0));
 }
 
-void HelloDXR::onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderContext, const Fbo::SharedPtr& pTargetFbo)
+void BaselineDXR::onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderContext, const Fbo::SharedPtr& pTargetFbo)
 {
     pRenderContext->clearFbo(pTargetFbo.get(), kClearColor, 1.0f, 0, FboAttachmentType::All);
 
@@ -163,7 +165,7 @@ void HelloDXR::onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderCon
     }
 }
 
-bool HelloDXR::onKeyEvent(SampleCallbacks* pSample, const KeyboardEvent& keyEvent)
+bool BaselineDXR::onKeyEvent(SampleCallbacks* pSample, const KeyboardEvent& keyEvent)
 {
     if (mCamController.onKeyEvent(keyEvent))
     {
@@ -177,12 +179,12 @@ bool HelloDXR::onKeyEvent(SampleCallbacks* pSample, const KeyboardEvent& keyEven
     return false;
 }
 
-bool HelloDXR::onMouseEvent(SampleCallbacks* pSample, const MouseEvent& mouseEvent)
+bool BaselineDXR::onMouseEvent(SampleCallbacks* pSample, const MouseEvent& mouseEvent)
 {
     return mCamController.onMouseEvent(mouseEvent);
 }
 
-void HelloDXR::onResizeSwapChain(SampleCallbacks* pSample, uint32_t width, uint32_t height)
+void BaselineDXR::onResizeSwapChain(SampleCallbacks* pSample, uint32_t width, uint32_t height)
 {
     float h = (float)height;
     float w = (float)width;
@@ -196,10 +198,13 @@ void HelloDXR::onResizeSwapChain(SampleCallbacks* pSample, uint32_t width, uint3
 
 int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _In_ LPSTR lpCmdLine, _In_ int nShowCmd)
 {
-    HelloDXR::UniquePtr pRenderer = std::make_unique<HelloDXR>();
+    BaselineDXR::UniquePtr pRenderer = std::make_unique<BaselineDXR>();
     SampleConfig config;
-    config.windowDesc.title = "HelloDXR";
+    config.windowDesc.title = "BaselineDXR";
     config.windowDesc.resizableWindow = true;
+
+    config.windowDesc.width = 960;
+    config.windowDesc.height = 540;
 
     Sample::run(config, pRenderer);
 }

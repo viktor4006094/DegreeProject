@@ -28,7 +28,10 @@
 RWTexture2D<float4> gOutput;
 __import Raytracing;
 
-shared cbuffer PerFrameCB
+#define MAX_RAY_DEPTH (2)
+
+shared
+cbuffer PerFrameCB
 {
     float4x4 invView;
     float4x4 invModel;
@@ -36,7 +39,7 @@ shared cbuffer PerFrameCB
     float tanHalfFovY;
 };
 
-struct PrimaryRayData
+struct PrimaryRayPayload
 {
     float4 color;
     uint depth;
@@ -48,24 +51,64 @@ struct ShadowRayData
     bool hit;
 };
 
-[shader("miss")]
-void shadowMiss(inout ShadowRayData hitData)
+
+
+
+// New shadow ray payload
+struct ShadowRayPayload
 {
-    hitData.hit = false;
+    float visibility; // 0.0 means shadowed, 1.0 means hit
+};
+
+struct IndirectPayload
+{
+    float3 color;
+    uint depth;
+};
+
+
+//**************************************************************************
+// Helper functions
+//**************************************************************************
+
+float shootShadowRay(RayDesc ray)
+{
+    ShadowRayPayload shadowPayload = { 0.0f }; //TODO: check which initial val it should have
+
+    // TODO: look over which flags to use
+    uint flags = RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER;
+
+    TraceRay(gRtScene, flags, 0xFF, 1, hitProgramCount, 1, ray, shadowPayload);
+    return shadowPayload.visibility;
 }
 
-[shader("anyhit")]
-void shadowAnyHit(inout ShadowRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
-{
-    hitData.hit = true;
-}
 
-[shader("miss")]
-void primaryMiss(inout PrimaryRayData hitData)
-{
-    hitData.color = float4(0.38f, 0.52f, 0.10f, 1);
-    hitData.hitT = -1;
-}
+//float3 shootReflectionRay(RayDesc ray)
+//{
+//    //IndirectPayload reflectionPayload = { float3(0.0, 0.0, 0.0), 0 };
+//    PrimaryRayPayload reflectionPayload;
+//    reflectionPayload.color = float3(0.0, 0.0, 0.0);
+//    reflectionPayload.depth = 1;
+    
+
+//    while (reflectionPayload.depth <= 2)
+//    {
+//        // Currently uses same shaders as the primary ray
+//        TraceRay(gRtScene, RAY_FLAG_NONE, 0xFF, 0, hitProgramCount, 0, ray, reclectionPayload);
+ 
+        
+    
+//    }
+
+
+//    return reflectionPayload.color;
+//}
+
+
+
+
+// Old functions
+
 
 bool checkLightHit(uint lightIndex, float3 origin)
 {
@@ -84,11 +127,12 @@ bool checkLightHit(uint lightIndex, float3 origin)
 
 float3 getReflectionColor(float3 worldOrigin, VertexOut v, float3 worldRayDir, uint hitDepth)
 {
+    float3 finalColor = float3(0, 0, 0);
     float3 reflectColor = float3(0, 0, 0);
-    if (hitDepth == 0)
+    if (hitDepth < MAX_RAY_DEPTH)
     {
-        PrimaryRayData secondaryRay;
-        secondaryRay.depth.r = 1;
+        PrimaryRayPayload secondaryRay;
+        secondaryRay.depth.r = hitDepth + 1;
         RayDesc ray;
         ray.Origin = worldOrigin;
         ray.Direction = reflect(worldRayDir, v.normalW);
@@ -98,16 +142,49 @@ float3 getReflectionColor(float3 worldOrigin, VertexOut v, float3 worldRayDir, u
         reflectColor = secondaryRay.hitT == -1 ? 0 : secondaryRay.color.rgb;
         float falloff = max(1, (secondaryRay.hitT * secondaryRay.hitT));
         reflectColor *= 20 / falloff;
+
+        finalColor += reflectColor;
     }
-    return reflectColor;
+    return finalColor;
 }
 
+
+//**************************************************************************
+// Shadow rays
+//**************************************************************************
+
+// TODO: make one of these empty since the same default value will always be used
+[shader("miss")]
+void shadowMiss(inout ShadowRayPayload payload)
+{
+    payload.visibility = 1.0f;
+}
+
+// empty since shadow payload is considered not-visible by default
+[shader("anyhit")]
+void shadowAnyHit(inout ShadowRayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
+{
+}
+
+
+//**************************************************************************
+// Primary rays
+//**************************************************************************
+
+[shader("miss")]
+void primaryMiss(inout PrimaryRayPayload hitData)
+{
+    hitData.color = float4(0.0f, 1.0f, 0.0f, 1);
+    hitData.hitT = -1;
+}
+
+
 [shader("closesthit")]
-void primaryClosestHit(inout PrimaryRayData hitData, in BuiltInTriangleIntersectionAttributes attribs)
+void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
     // Get the hit-point data
     float3 rayOrigW = WorldRayOrigin();
-    float3 rayDirW = WorldRayDirection(); 
+    float3 rayDirW = WorldRayDirection();
     float hitT = RayTCurrent();
     uint triangleIndex = PrimitiveIndex();
 
@@ -122,11 +199,23 @@ void primaryClosestHit(inout PrimaryRayData hitData, in BuiltInTriangleIntersect
 
     [unroll]
     for (int i = 0; i < gLightsCount; i++)
-    {        
-        if (checkLightHit(i, posW) == false)
-        {
-            color += evalMaterial(sd, gLights[i], 1).color.xyz;
-        }
+    {
+        //if (checkLightHit(i, posW) == false)
+
+        float3 direction = gLights[i].posW - posW;
+        RayDesc shadowRay;
+        shadowRay.Origin = posW;
+        shadowRay.Direction = normalize(direction);
+        shadowRay.TMin = 0.001;
+        shadowRay.TMax = max(0.01, length(direction));
+
+        // TODO test without if-statement
+        //if (shootShadowRay(shadowRay) != 0.0)
+        //{
+        //    color += evalMaterial(sd, gLights[i], 1).color.xyz;
+        //}
+        color += (shootShadowRay(shadowRay) * evalMaterial(sd, gLights[i], 1).color.xyz);
+
     }
 
     hitData.color.rgb = color;
@@ -137,6 +226,12 @@ void primaryClosestHit(inout PrimaryRayData hitData, in BuiltInTriangleIntersect
     hitData.color.rgb += sd.emissive;
     hitData.color.a = 1;
 }
+
+
+
+//**************************************************************************
+// Ray generation
+//**************************************************************************
 
 [shader("raygeneration")]
 void rayGen()
@@ -153,13 +248,13 @@ void rayGen()
     // The negation of Z axis is needed to get the rays go out in the direction away fromt he viewer.
     // The negation of Y axis is needed because the texel coordinate system, used in the UAV we write into using launchIndex
     // has the Y axis flipped with respect to the camera Y axis (0 is at the top and 1 at the bottom)
-    ray.Direction = normalize( (d.x * invView[0].xyz * tanHalfFovY * aspectRatio) - (d.y * invView[1].xyz * tanHalfFovY) - invView[2].xyz );
+    ray.Direction = normalize((d.x * invView[0].xyz * tanHalfFovY * aspectRatio) - (d.y * invView[1].xyz * tanHalfFovY) - invView[2].xyz);
     
     ray.TMin = 0;
     ray.TMax = 100000;
 
-    PrimaryRayData hitData;
-    hitData.depth = 0;
-    TraceRay( gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, ray, hitData );
-    gOutput[launchIndex.xy] = hitData.color;
+    PrimaryRayPayload payload;
+    payload.depth = 0;
+    TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, ray, payload);
+    gOutput[launchIndex.xy] = payload.color;
 }
