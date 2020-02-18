@@ -28,7 +28,10 @@
 RWTexture2D<float4> gOutput;
 __import Raytracing;
 
-#define MAX_RAY_DEPTH (2)
+#define MAX_RAY_DEPTH (3)
+//#define MISS_COLOR (float4(0.53f, 0.81f, 0.92f, 1))
+//#define MISS_COLOR (float4(0.1,0.1,0.1,1.0))
+#define MISS_COLOR (float4(0.2,0.2,0.2,1.0))
 
 shared
 cbuffer PerFrameCB
@@ -70,6 +73,53 @@ struct IndirectPayload
 //**************************************************************************
 // Helper functions
 //**************************************************************************
+
+
+
+
+//float3 evalSpecularBrdfUniform(ShadingData sd, LightSample ls)
+//{
+//    float roughness = sd.roughness;
+
+//    float D = evalGGX(roughness, ls.NdotH);
+//    float G = evalSmithGGX(ls.NdotL, sd.NdotV, roughness);
+//    float3 F = fresnelSchlick(sd.specular, 1, max(0, ls.LdotH));
+//    return D * G * F * M_INV_PI;
+//}
+
+
+//float3 evalMaterialUniformLighting(ShadingData sd)
+//{
+//    ShadingResult sr = initShadingResult();
+//    //LightSample ls = evalLight(light, sd);
+//    LightSample ls;
+//    ls.diffuse = float3(1.0, 1.0, 1.0);
+//    ls.diffuse = float3(1.0, 1.0, 1.0);
+
+//    // If the light doesn't hit the surface or we are viewing the surface from the back, return
+//    //if (ls.NdotL <= 0)
+//    //    return sr;
+//    //sd.NdotV = saturate(sd.NdotV);
+
+//    // Calculate the diffuse term
+//    sr.diffuseBrdf = saturate(evalDiffuseLambertBrdf(sd, ls)); // Lambert used temporarily
+//    sr.diffuse = ls.diffuse * sr.diffuseBrdf;// * ls.NdotL; // not sure if this works
+//    sr.color.rgb = sr.diffuse;
+//    sr.color.a = 1.0; //sd.opacity;
+
+//    // Calculate the specular term
+//    sr.specularBrdf = saturate(evalSpecularBrdf(sd, ls));
+//    sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
+//    sr.color.rgb += sr.specular;
+
+//    // Apply the shadow factor
+//    //sr.color.rgb *= shadowFactor;
+
+//    return sr;
+//};
+
+
+
 
 float shootShadowRay(RayDesc ray)
 {
@@ -139,11 +189,16 @@ float3 getReflectionColor(float3 worldOrigin, VertexOut v, float3 worldRayDir, u
         ray.TMin = 0.001;
         ray.TMax = 100000;
         TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, ray, secondaryRay);
-        reflectColor = secondaryRay.hitT == -1 ? 0 : secondaryRay.color.rgb;
+        reflectColor = secondaryRay.hitT == -1 ? MISS_COLOR.rgb : secondaryRay.color.rgb;
+        //reflectColor = secondaryRay.hitT == -1 ? 0 : secondaryRay.color.rgb;
         float falloff = max(1, (secondaryRay.hitT * secondaryRay.hitT));
         reflectColor *= 20 / falloff;
 
         finalColor += reflectColor;
+    }
+    else
+    {
+        finalColor = float3(0.5, 0.5, 0.5);
     }
     return finalColor;
 }
@@ -174,7 +229,7 @@ void shadowAnyHit(inout ShadowRayPayload payload, in BuiltInTriangleIntersection
 [shader("miss")]
 void primaryMiss(inout PrimaryRayPayload hitData)
 {
-    hitData.color = float4(0.0f, 1.0f, 0.0f, 1);
+    hitData.color = MISS_COLOR;
     hitData.hitT = -1;
 }
 
@@ -197,31 +252,35 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
     float3 reflectColor = getReflectionColor(posW, v, rayDirW, hitData.depth.r);
     float3 color = 0;
 
-    [unroll]
-    for (int i = 0; i < gLightsCount; i++)
-    {
-        //if (checkLightHit(i, posW) == false)
+    //[unroll]
+    //for (int i = 0; i < gLightsCount; i++)
+    //{
+    //    //if (checkLightHit(i, posW) == false)
 
-        float3 direction = gLights[i].posW - posW;
-        RayDesc shadowRay;
-        shadowRay.Origin = posW;
-        shadowRay.Direction = normalize(direction);
-        shadowRay.TMin = 0.001;
-        shadowRay.TMax = max(0.01, length(direction));
+    //    float3 direction = gLights[i].posW - posW;
+    //    RayDesc shadowRay;
+    //    shadowRay.Origin = posW;
+    //    shadowRay.Direction = normalize(direction);
+    //    shadowRay.TMin = 0.001;
+    //    shadowRay.TMax = max(0.01, length(direction));
 
-        // TODO test without if-statement
-        //if (shootShadowRay(shadowRay) != 0.0)
-        //{
-        //    color += evalMaterial(sd, gLights[i], 1).color.xyz;
-        //}
-        color += (shootShadowRay(shadowRay) * evalMaterial(sd, gLights[i], 1).color.xyz);
+    //    // TODO test without if-statement
+    //    //if (shootShadowRay(shadowRay) != 0.0)
+    //    //{
+    //    //    color += evalMaterial(sd, gLights[i], 1).color.xyz;
+    //    //}
+    //    color += (shootShadowRay(shadowRay) * evalMaterial(sd, gLights[i], 1).color.xyz);
 
-    }
+
+    //}
+        // Uniform color
+    color += evalMaterialUniform(sd).color.xyz;
 
     hitData.color.rgb = color;
     hitData.hitT = hitT;
     // A very non-PBR inaccurate way to do reflections
     float roughness = min(0.5, max(1e-8, sd.roughness));
+    //hitData.color.rgb *= (1.0 - roughness * roughness); //EXPERIMENTAL
     hitData.color.rgb += sd.specular * reflectColor * (roughness * roughness);
     hitData.color.rgb += sd.emissive;
     hitData.color.a = 1;

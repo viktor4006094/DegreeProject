@@ -28,7 +28,8 @@
 #include "BaselineDXR.h"
 
 static const glm::vec4 kClearColor(0.38f, 0.52f, 0.10f, 1);
-static const std::string kDefaultScene = "Arcade/Arcade.fscene";
+//static const std::string kDefaultScene = "Experimental/arcadeWithCubes.fscene";
+static const std::string kDefaultScene = "PolarizationTest/PolarizationScene218.fscene";
 
 std::string to_string(const vec3& v)
 {
@@ -73,7 +74,7 @@ void BaselineDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
     pModel->bindSamplerToMaterials(pSampler);
 
     // Update the controllers
-    mCamController.setCameraSpeed(radius * 0.25f);
+    mCamController.setCameraSpeed(0.25f);
     float nearZ = std::max(0.1f, pModel->getRadius() / 750.0f);
     float farZ = radius * 10;
     mpCamera->setDepthRange(nearZ, farZ);
