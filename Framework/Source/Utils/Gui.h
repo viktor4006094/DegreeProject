@@ -271,7 +271,7 @@ namespace Falcor
         bool addInt3Var(const char label[], glm::ivec3& var, int32_t minVal = -INT32_MAX, int32_t maxVal = INT32_MAX, bool sameLine = false);
         bool addInt4Var(const char label[], glm::ivec4& var, int32_t minVal = -INT32_MAX, int32_t maxVal = INT32_MAX, bool sameLine = false);
 
-        bool addIntSlider(const char label[], int32_t& var, int minVal = -INT32_MAX, int maxVal = INT32_MAX, bool sameLine = false);
+        bool addIntSlider(const char label[], int32_t& var, int minVal = -INT32_MAX, int maxVal = INT32_MAX, bool sameLine = false, float width = 200.0f);
         bool addInt2Slider(const char label[], glm::ivec2& var, int32_t minVal = -INT32_MAX, int32_t maxVal = INT32_MAX, bool sameLine = false);
         bool addInt3Slider(const char label[], glm::ivec3& var, int32_t minVal = -INT32_MAX, int32_t maxVal = INT32_MAX, bool sameLine = false);
         bool addInt4Slider(const char label[], glm::ivec4& var, int32_t minVal = -INT32_MAX, int32_t maxVal = INT32_MAX, bool sameLine = false);

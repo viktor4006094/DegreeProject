@@ -42,6 +42,16 @@ cbuffer PerFrameCB
     float tanHalfFovY;
 };
 
+
+//TODO look into what shared actually means in this case
+shared
+cbuffer SettingsCB
+{
+    int maxRecursionDepth;
+    float tMin;
+    float tMax;
+};
+
 struct PrimaryRayPayload
 {
     float4 color;
@@ -166,8 +176,8 @@ bool checkLightHit(uint lightIndex, float3 origin)
     RayDesc ray;
     ray.Origin = origin;
     ray.Direction = normalize(direction);
-    ray.TMin = 0.001;
-    ray.TMax = max(0.01, length(direction));
+    ray.TMin = tMin;
+    ray.TMax = max(tMin+0.01, length(direction));
 
     ShadowRayData rayData;
     rayData.hit = true;
@@ -179,15 +189,16 @@ float3 getReflectionColor(float3 worldOrigin, VertexOut v, float3 worldRayDir, u
 {
     float3 finalColor = float3(0, 0, 0);
     float3 reflectColor = float3(0, 0, 0);
-    if (hitDepth < MAX_RAY_DEPTH)
+    //if (hitDepth < MAX_RAY_DEPTH)
+    if (hitDepth < maxRecursionDepth)
     {
         PrimaryRayPayload secondaryRay;
         secondaryRay.depth.r = hitDepth + 1;
         RayDesc ray;
         ray.Origin = worldOrigin;
         ray.Direction = reflect(worldRayDir, v.normalW);
-        ray.TMin = 0.001;
-        ray.TMax = 100000;
+        ray.TMin = tMin;
+        ray.TMax = tMax;
         TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, ray, secondaryRay);
         reflectColor = secondaryRay.hitT == -1 ? MISS_COLOR.rgb : secondaryRay.color.rgb;
         //reflectColor = secondaryRay.hitT == -1 ? 0 : secondaryRay.color.rgb;
@@ -309,8 +320,8 @@ void rayGen()
     // has the Y axis flipped with respect to the camera Y axis (0 is at the top and 1 at the bottom)
     ray.Direction = normalize((d.x * invView[0].xyz * tanHalfFovY * aspectRatio) - (d.y * invView[1].xyz * tanHalfFovY) - invView[2].xyz);
     
-    ray.TMin = 0;
-    ray.TMax = 100000;
+    ray.TMin = 0; // no self 
+    ray.TMax = tMax;
 
     PrimaryRayPayload payload;
     payload.depth = 0;

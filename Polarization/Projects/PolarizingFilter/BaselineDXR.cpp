@@ -55,6 +55,27 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
         std::string group = "Point Light" + std::to_string(i);
         mpScene->getLight(i)->renderUI(pGui, group.c_str());
     }
+
+
+    if (pGui->beginGroup("Rays", true)) {
+        // TODO: rename
+        pGui->addIntSlider("Recursion depth", mpMaxRecursionDepth, 0, 4, false, 100.0f);
+        pGui->addFloatSlider("TMax", mpTMax, 0.0f, TMAX, false, "%.2f");
+        pGui->addFloatSlider("TMin", mpTMin, 0.0f, TMIN, false, "%1.6f");
+
+        pGui->endGroup();
+    }
+
+    if (pGui->beginGroup("Camera"))
+    {
+
+        if (pGui->addFloatSlider("Speed", mpCamSpeed, 0.02f, 10.0f, false, "%.2f"))
+        {
+            mCamController.setCameraSpeed(mpCamSpeed);
+        }
+
+        pGui->endGroup();
+    }
 }
 
 void BaselineDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
@@ -74,7 +95,7 @@ void BaselineDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
     pModel->bindSamplerToMaterials(pSampler);
 
     // Update the controllers
-    mCamController.setCameraSpeed(0.25f);
+    mCamController.setCameraSpeed(mpCamSpeed);
     float nearZ = std::max(0.1f, pModel->getRadius() / 750.0f);
     float farZ = radius * 10;
     mpCamera->setDepthRange(nearZ, farZ);
@@ -109,8 +130,12 @@ void BaselineDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext
     mpRtState = RtState::create();
     mpRtState->setProgram(mpRaytraceProgram);
 
+
+    //TODO Should be hard-coded for the testing
     // Used to be 3
-    mpRtState->setMaxTraceRecursionDepth(5); // 1 for calling TraceRay from RayGen, 1 for calling it from the primary-ray ClosestHitShader for reflections, 1 for reflection ray tracing a shadow ray
+    // 1 for calling TraceRay from RayGen, 1 for calling it from the primary-ray ClosestHitShader for reflections, 1 for reflection ray tracing a shadow ray
+    mpRtState->setMaxTraceRecursionDepth(5);
+    //mpRtState->setMaxTraceRecursionDepth(mpMaxRecursionDepth);
 }
 
 void BaselineDXR::renderRaster(RenderContext* pContext)
@@ -132,6 +157,13 @@ void BaselineDXR::setPerFrameVars(const Fbo* pTargetFbo)
     pCB["viewportDims"] = vec2(pTargetFbo->getWidth(), pTargetFbo->getHeight());
     float fovY = focalLengthToFovY(mpCamera->getFocalLength(), Camera::kDefaultFrameHeight);
     pCB["tanHalfFovY"] = tanf(fovY * 0.5f);
+
+
+
+    pCB = pVars->getConstantBuffer("SettingsCB");
+    pCB["maxRecursionDepth"] = mpMaxRecursionDepth;
+    pCB["tMin"] = mpTMin;
+    pCB["tMax"] = mpTMax;
 }
 
 void BaselineDXR::renderRT(RenderContext* pContext, const Fbo* pTargetFbo)

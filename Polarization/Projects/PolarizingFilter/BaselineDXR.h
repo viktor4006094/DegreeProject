@@ -29,6 +29,10 @@
 #include "Falcor.h"
 #include "FalcorExperimental.h"
 
+constexpr float TMIN = 0.001f;
+constexpr float TMAX = 100000.0f;
+
+
 using namespace Falcor;
 
 class BaselineDXR : public Renderer
@@ -57,6 +61,22 @@ private:
     RtState::SharedPtr mpRtState;
     RtSceneRenderer::SharedPtr mpRtRenderer;
     Texture::SharedPtr mpRtOut;
+
+
+
+
+    // GUI stuff
+
+
+    // Rays
+    int32_t mpMaxRecursionDepth = 3;
+    float mpTMin = TMIN;
+    float mpTMax = TMAX;
+
+    // Camera
+    float mpCamSpeed = 0.25f;
+
+
 
     void setPerFrameVars(const Fbo* pTargetFbo);
     void renderRT(RenderContext* pContext, const Fbo* pTargetFbo);

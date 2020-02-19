@@ -511,9 +511,9 @@ namespace Falcor
         return b;
     }
 
-    bool Gui::addIntSlider(const char label[], int32_t& var, int minVal, int maxVal, bool sameLine)
+    bool Gui::addIntSlider(const char label[], int32_t& var, int minVal, int maxVal, bool sameLine, float width)
     {
-        ImGui::PushItemWidth(200);
+        ImGui::PushItemWidth(width);
         if (sameLine) ImGui::SameLine();
         bool b = ImGui::SliderInt(label, &var, minVal, maxVal);
         var = clamp(var, minVal, maxVal);
@@ -524,7 +524,7 @@ namespace Falcor
     bool Gui::addFloatSlider(const char label[], float& var, float minVal, float maxVal, bool sameLine, const char* displayFormat)
     {
         if (sameLine) ImGui::SameLine();
-        bool b = ImGui::SliderFloat(label, &var, minVal, maxVal);
+        bool b = ImGui::SliderFloat(label, &var, minVal, maxVal, displayFormat);
         var = clamp(var, minVal, maxVal);
         return b;
     }
