@@ -30,6 +30,7 @@ __import Raytracing;
 
 __import Shading;
 __import Lights;
+__import BRDF;
 
 
 #define M_PI     3.14159265358979323846
@@ -94,9 +95,16 @@ struct IndirectPayload
 
 /** Lambertian diffuse
 */
-float3 lambertianDiffuse(float3 color)
+float3 calcDiffuse(float3 color, float NdotL)
 {
-    return color * (1 / M_PI);
+    if (uniformLighting)
+    {
+        return color * (1 / M_PI);
+    }
+    else
+    {
+        return color * (1 / M_PI) * NdotL;
+    }
 }
 
 
@@ -184,7 +192,7 @@ float3 getReflectionColor(float3 worldOrigin, VertexOut v, float3 worldRayDir, u
     }
     else
     {
-        finalColor = float3(0.5, 0.5, 0.5);
+        finalColor = float3(0.318, 0.318, 0.318); // 1/PI
     }
     return finalColor;
 }
@@ -241,11 +249,14 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 
 
 
+    float roughness = min(0.5, max(1e-8, sd.roughness));
 
 
     if (uniformLighting)
     {
-        color += (sd.diffuse.rgb * (1 / M_PI));
+        color += calcDiffuse(sd.diffuse.rgb, 0);
+        hitData.color.rgb = color;
+        hitData.color.rgb += sd.specular * reflectColor * (roughness * roughness);
     }
     else
     {
@@ -262,7 +273,11 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
             shadowRay.TMax = max(0.01, length(direction));
 
         // TODO test without if-statement
-        //if (shootShadowRay(shadowRay) != 0.0)
+            if (shootShadowRay(shadowRay) == 0.0)
+            {
+                continue;
+            }
+            //if (shootShadowRay(shadowRay) != 0.0)
         //{
         //    color += evalMaterial(sd, gLights[i], 1).color.xyz;
         //}
@@ -274,13 +289,47 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
             //WIP what will be used eventually
 
             //TODO rewrite with cutom functions
-            LightSample ls1 = evalLight(gLights[i], sd);
+            //LightSample ls1 = evalLight(gLights[i], sd);
             
             //diffuse
             // Something's weird here
-            color += (ls1.diffuse * saturate(sd.diffuse.rgb * (1 / M_PI)) * ls1.NdotL).rgb;
+            //color += (ls1.diffuse * saturate(sd.diffuse.rgb * (1 / M_PI)) * ls1.NdotL).rgb;
+
+
+            ShadingResult sr = initShadingResult();
+            LightSample ls = evalLight(gLights[i], sd);
+
+            // If the light doesn't hit the surface or we are viewing the surface from the back, return
+            if (ls.NdotL > 0)
+            {
+                sd.NdotV = saturate(sd.NdotV);
+
+                // Calculate the diffuse term
+                //sr.diffuseBrdf = saturate(evalDiffuseBrdf(sd, ls));
+                //sr.diffuse = ls.diffuse * sr.diffuseBrdf * ls.NdotL;
+
+                sr.diffuse = ls.diffuse * calcDiffuse(sd.diffuse.rgb, ls.NdotL);
+                
+                sr.color.rgb = sr.diffuse;
+                sr.color.a = sd.opacity;
+
+                // Calculate the specular term
+                sr.specularBrdf = saturate(evalSpecularBrdf(sd, ls));
+                sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
+                sr.color.rgb += sr.specular;
+
+                // Apply the shadow factor
+                //sr.color.rgb *= 1;
+                color = sr.color.rgb;
+            }
+
 
         }
+        hitData.color.rgb = color;
+        hitData.color.rgb += sd.specular * reflectColor * (roughness * roughness);
+
+
+        
     }
         // Uniform color
     //color += evalMaterialUniform(sd).color.xyz;
@@ -288,7 +337,6 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
     //hitData.color.rgb = color;
     //hitData.hitT = hitT;
     //// A very non-PBR inaccurate way to do reflections
-    float roughness = min(0.5, max(1e-8, sd.roughness));
     ////hitData.color.rgb *= (1.0 - roughness * roughness); //EXPERIMENTAL
     //hitData.color.rgb += sd.specular * reflectColor * (roughness * roughness);
     //hitData.color.rgb += sd.emissive;
@@ -298,7 +346,6 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
     //float3 cdiff = evalMaterial(sd, gLights[i], 1).color.xyz;
 
 
-    hitData.color.rgb += (color + sd.specular * reflectColor * roughness);
     hitData.color.rgb += sd.emissive;
 
     hitData.hitT = hitT;

@@ -77,7 +77,7 @@ private:
 
     // Camera
     float mpCamSpeed = 0.25f;
-    bool mpLightOnCamera = true;
+    bool mpLightOnCamera = false;
 
 
 

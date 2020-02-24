@@ -65,6 +65,9 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
         pGui->addFloatSlider("TMin", mpTMin, 0.0f, TMIN, false, "%1.6f");
         pGui->addCheckBox("Uniform light", mpUniformLight);
 
+        pGui->addCheckBox("Attach light", mpLightOnCamera);
+
+
         pGui->endGroup();
     }
 
@@ -76,14 +79,7 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
             mCamController.setCameraSpeed(mpCamSpeed);
         }
 
-        pGui->addCheckBox("Attach light", mpLightOnCamera);
 
-        //TODO move, this only works for point lights
-        if (mpLightOnCamera) {
-            //mpScene->getLight(0)->move(mpCamera->getPosition(), mpCamera->getTarget(), mpCamera->getUpVector());
-
-            std::dynamic_pointer_cast<Falcor::PointLight>(mpScene->getLight(0))->setWorldPosition(mpScene->getActiveCamera()->getPosition());
-        }
 
         pGui->endGroup();
     }
@@ -176,6 +172,14 @@ void BaselineDXR::setPerFrameVars(const Fbo* pTargetFbo)
     pCB["tMin"] = mpTMin;
     pCB["tMax"] = mpTMax;
     pCB["uniformLighting"] = mpUniformLight;
+
+
+    //TODO move, this only works for point lights
+    if (mpLightOnCamera) {
+        //mpScene->getLight(0)->move(mpCamera->getPosition(), mpCamera->getTarget(), mpCamera->getUpVector());
+
+        std::dynamic_pointer_cast<Falcor::PointLight>(mpScene->getLight(0))->setWorldPosition(mpScene->getActiveCamera()->getPosition());
+    }
 }
 
 void BaselineDXR::renderRT(RenderContext* pContext, const Fbo* pTargetFbo)
