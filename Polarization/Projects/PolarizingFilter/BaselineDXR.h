@@ -73,8 +73,11 @@ private:
     float mpTMin = TMIN;
     float mpTMax = TMAX;
 
+    bool mpUniformLight = true;
+
     // Camera
     float mpCamSpeed = 0.25f;
+    bool mpLightOnCamera = true;
 
 
 

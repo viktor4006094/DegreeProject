@@ -37,7 +37,8 @@ __import Lights;
 #define DiffuseBrdfFrostbite    2
 
 #ifndef DiffuseBrdf
-#define DiffuseBrdf DiffuseBrdfFrostbite
+//#define DiffuseBrdf DiffuseBrdfFrostbite
+#define DiffuseBrdf DiffuseBrdfLambert
 #endif
 
 float3 fresnelSchlick(float3 f0, float3 f90, float u)

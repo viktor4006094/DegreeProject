@@ -28,8 +28,9 @@
 #include "BaselineDXR.h"
 
 static const glm::vec4 kClearColor(0.38f, 0.52f, 0.10f, 1);
-//static const std::string kDefaultScene = "Experimental/arcadeWithCubes.fscene";
-static const std::string kDefaultScene = "PolarizationTest/PolarizationScene218.fscene";
+//static const std::string kDefaultScene = "Arcade/Arcade.fscene";
+static const std::string kDefaultScene = "Experimental/arcadeWithCubes.fscene";
+//static const std::string kDefaultScene = "PolarizationTest/PolarizationScene218.fscene";
 
 std::string to_string(const vec3& v)
 {
@@ -62,6 +63,7 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
         pGui->addIntSlider("Recursion depth", mpMaxRecursionDepth, 0, 4, false, 100.0f);
         pGui->addFloatSlider("TMax", mpTMax, 0.0f, TMAX, false, "%.2f");
         pGui->addFloatSlider("TMin", mpTMin, 0.0f, TMIN, false, "%1.6f");
+        pGui->addCheckBox("Uniform light", mpUniformLight);
 
         pGui->endGroup();
     }
@@ -72,6 +74,15 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
         if (pGui->addFloatSlider("Speed", mpCamSpeed, 0.02f, 10.0f, false, "%.2f"))
         {
             mCamController.setCameraSpeed(mpCamSpeed);
+        }
+
+        pGui->addCheckBox("Attach light", mpLightOnCamera);
+
+        //TODO move, this only works for point lights
+        if (mpLightOnCamera) {
+            //mpScene->getLight(0)->move(mpCamera->getPosition(), mpCamera->getTarget(), mpCamera->getUpVector());
+
+            std::dynamic_pointer_cast<Falcor::PointLight>(mpScene->getLight(0))->setWorldPosition(mpScene->getActiveCamera()->getPosition());
         }
 
         pGui->endGroup();
@@ -164,6 +175,7 @@ void BaselineDXR::setPerFrameVars(const Fbo* pTargetFbo)
     pCB["maxRecursionDepth"] = mpMaxRecursionDepth;
     pCB["tMin"] = mpTMin;
     pCB["tMax"] = mpTMax;
+    pCB["uniformLighting"] = mpUniformLight;
 }
 
 void BaselineDXR::renderRT(RenderContext* pContext, const Fbo* pTargetFbo)
