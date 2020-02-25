@@ -254,6 +254,7 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
     config.windowDesc.width = 960;
     config.windowDesc.height = 540;
+    
 
     Sample::run(config, pRenderer);
 }
