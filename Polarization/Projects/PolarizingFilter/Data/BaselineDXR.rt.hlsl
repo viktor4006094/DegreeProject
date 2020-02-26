@@ -39,8 +39,8 @@ __import BRDF;
 
 #define MAX_RAY_DEPTH (3)
 //#define MISS_COLOR (float4(0.53f, 0.81f, 0.92f, 1))
-//#define MISS_COLOR (float4(1,1,1,1))
-#define MISS_COLOR (float4(0.2,0.2,0.2,1.0))
+#define MISS_COLOR (float4(1,1,1,1))
+//#define MISS_COLOR (float4(0.2,0.2,0.2,1.0))
 //#define MISS_COLOR (float4(0.9,0.,0.,1.0))
 
 shared
@@ -199,7 +199,7 @@ float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float
         //specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
         
         float3 specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, NdotV, NdotH, NdotL, LdotH));
-        float3 reflection = reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
+        float3 reflection = sd.specular * reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
 
         finalColor += reflection;
         //finalColor = specularBrdf * reflectColor;
@@ -331,6 +331,9 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
     //sd.diffuse = float3(0.5);
     //sd.specular = float3(0.03);
     //sd.roughness = 0.75;
+    sd.roughness = sd.linearRoughness;
+    //sd.specular = float3(0.5);
+    //sd.roughness = 0.1;
     
     // Shoot a reflection ray
     float3 reflectColor = getReflectionColor(sd, posW, v, rayDirW, hitData.depth.r);
@@ -410,8 +413,8 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
                 float comp = (F.r + F.g + F.b) / 3.0;
 
                 
-                //sr.color.rgb += (sr.diffuse * (1.0 - comp));
-                sr.color.rgb += sr.diffuse;
+                sr.color.rgb += (sr.diffuse * (1.0 - comp));
+                //sr.color.rgb += sr.diffuse;
                 sr.color.a = sd.opacity;
 
                 // Apply the shadow factor
@@ -427,9 +430,10 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
         
     }
 
-    float roughness = min(0.5, max(1e-8, sd.roughness));
+    //float roughness = min(0.5, max(1e-8, sd.roughness));
 
     // both uniform and light source types have reflections
+    //hitData.color.rgb += reflectColor; //sd.specular * reflectColor * (roughness * roughness);
     hitData.color.rgb += reflectColor; //sd.specular * reflectColor * (roughness * roughness);
 
     
@@ -449,6 +453,7 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 
 
     hitData.color.rgb += sd.emissive;
+    //hitData.color.rgb = sd.specular;
 
     hitData.hitT = hitT;
     hitData.color.a = 1;
