@@ -41,6 +41,7 @@ __import BRDF;
 //#define MISS_COLOR (float4(0.53f, 0.81f, 0.92f, 1))
 //#define MISS_COLOR (float4(1,1,1,1))
 #define MISS_COLOR (float4(0.2,0.2,0.2,1.0))
+//#define MISS_COLOR (float4(0.9,0.,0.,1.0))
 
 shared
 cbuffer PerFrameCB
@@ -183,12 +184,20 @@ float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float
         //sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
 
 
-        float3 H = normalize(worldRayDir + ray.Direction);
-        float NdotV = saturate(dot(sd.N, worldRayDir));
+        float3 H = normalize(-worldRayDir + ray.Direction);
+        float NdotV = saturate(dot(sd.N, -worldRayDir));
         float NdotH = saturate(dot(sd.N, H));
         float NdotL = saturate(dot(sd.N, ray.Direction));
         float LdotH = saturate(dot(ray.Direction, H));
 
+
+        //float D = calcGGX(sd.roughness, NdotH); // Distribution of facets orientation
+        //float G = calcSmithGGX(NdotL, NdotV, sd.roughness); // Masking and shadowing
+        //float3 F = calcFresnelSchlick(sd.specular, 1, max(0, LdotH)); // Fresnel coeff
+        ////return D * G * F * M_INV_PI; //TODO mention this in some way
+        //float3 specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
+        //specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
+        
         float3 specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, NdotV, NdotH, NdotL, LdotH));
         float3 reflection = reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
 
@@ -227,6 +236,10 @@ void shadowAnyHit(inout ShadowRayPayload payload, in BuiltInTriangleIntersection
 
 
 
+
+
+
+
 /** Lambertian diffuse
 */
 float3 calcDiffuse(float3 color, float NdotL)
@@ -240,10 +253,6 @@ float3 calcDiffuse(float3 color, float NdotL)
         return color * (M_INV_PI * NdotL);
     }
 }
-
-
-
-
 
 /////////////////////////////////////////////////////////////////////////////////////
 // No need to change these functions
@@ -319,7 +328,9 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
     //sd.diffuse *= 1.5;
     //sd.roughness = 0.9;
     //sd.diffuse = saturate(sd.diffuse+float3(0.1));
-    
+    //sd.diffuse = float3(0.5);
+    //sd.specular = float3(0.03);
+    //sd.roughness = 0.75;
     
     // Shoot a reflection ray
     float3 reflectColor = getReflectionColor(sd, posW, v, rayDirW, hitData.depth.r);
@@ -331,7 +342,7 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
     {
         // uniform has diffuse but no specular since there are no light sources
         color += calcDiffuse(sd.diffuse.rgb, 0);
-        hitData.color.rgb = color; 
+        hitData.color.rgb = color;
     }
     else
     {
@@ -377,20 +388,31 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
             // If the light doesn't hit the surface or we are viewing the surface from the back, return
             if (ls.NdotL > 0)
             {
+                //ls.specular = float3(0.0, 0.8, 0.0);
+                //ls.diffuse = float3(0.0, 0.9, 0.0);
+
+                
                 sd.NdotV = saturate(sd.NdotV);
 
-                // Calculate the diffuse term
-                //sr.diffuseBrdf = saturate(evalDiffuseBrdf(sd, ls));
-                //sr.diffuse = ls.diffuse * sr.diffuseBrdf * ls.NdotL;
-                sr.diffuse = ls.diffuse * calcDiffuse(sd.diffuse.rgb, ls.NdotL);
-                
-                sr.color.rgb = sr.diffuse;
-                sr.color.a = sd.opacity;
 
                 // Calculate the specular term
                 sr.specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, sd.NdotV, ls.NdotH, ls.NdotL, ls.LdotH));
                 sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
                 sr.color.rgb += sr.specular;
+
+
+                // Calculate the diffuse term
+                //sr.diffuseBrdf = saturate(evalDiffuseBrdf(sd, ls));
+                //sr.diffuse = ls.diffuse * sr.diffuseBrdf * ls.NdotL;
+                sr.diffuse = ls.diffuse * calcDiffuse(sd.diffuse.rgb, ls.NdotL);
+
+                float3 F = calcFresnelSchlick(sd.specular, 1, max(0, ls.LdotH)); // Fresnel coeff
+                float comp = (F.r + F.g + F.b) / 3.0;
+
+                
+                //sr.color.rgb += (sr.diffuse * (1.0 - comp));
+                sr.color.rgb += sr.diffuse;
+                sr.color.a = sd.opacity;
 
                 // Apply the shadow factor
                 //sr.color.rgb *= 1;
