@@ -8,7 +8,7 @@ root = true
 # - use utf-8 as default
 [*]
 indent_size = 4
-indent_style = space
+indent_style = tab
 trim_trailing_whitespace = true
 insert_final_newline = true
 end_of_line = crlf
@@ -17,3 +17,8 @@ charset = utf-8
 # Override trailing whitespace setting for Markdown since there it's actually useful
 [*.{md}]
 trim_trailing_whitespace = false
+
+
+# Override style settings for hlsl files to make them more compact
+# [*.{hlsl}]
+# indent_style = tab

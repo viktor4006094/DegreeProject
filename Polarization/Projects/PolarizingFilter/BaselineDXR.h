@@ -38,51 +38,62 @@ using namespace Falcor;
 class BaselineDXR : public Renderer
 {
 public:
-    void onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext) override;
-    void onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderContext, const Fbo::SharedPtr& pTargetFbo) override;
-    void onResizeSwapChain(SampleCallbacks* pSample, uint32_t width, uint32_t height) override;
-    bool onKeyEvent(SampleCallbacks* pSample, const KeyboardEvent& keyEvent) override;
-    bool onMouseEvent(SampleCallbacks* pSample, const MouseEvent& mouseEvent) override;
-    void onGuiRender(SampleCallbacks* pSample, Gui* pGui) override;
+	enum OutputType: int32_t
+	{
+		Normals      = 0, ///< World space normals
+		Specular     = 1, ///< Specular output (no reflections)
+		Diffuse      = 2, ///< Diffuse output (no refelctions)
+		Reflectivity = 3, ///< Percentage of light that gets reflected
+		Result       = 4, ///< The resulting image
+	};
+
+	void onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext) override;
+	void onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderContext, const Fbo::SharedPtr& pTargetFbo) override;
+	void onResizeSwapChain(SampleCallbacks* pSample, uint32_t width, uint32_t height) override;
+	bool onKeyEvent(SampleCallbacks* pSample, const KeyboardEvent& keyEvent) override;
+	bool onMouseEvent(SampleCallbacks* pSample, const MouseEvent& mouseEvent) override;
+	void onGuiRender(SampleCallbacks* pSample, Gui* pGui) override;
 
 private:
-    RtScene::SharedPtr mpScene;
-    SceneRenderer::SharedPtr mpSceneRenderer;
 
-    RtProgram::SharedPtr mpRaytraceProgram = nullptr;
-    GraphicsProgram::SharedPtr mpRasterProgram = nullptr;
-    GraphicsVars::SharedPtr mpProgramVars = nullptr;
-    GraphicsState::SharedPtr mpGraphicsState = nullptr;
-    Camera::SharedPtr mpCamera;
-    FirstPersonCameraController mCamController;
+	RtScene::SharedPtr mpScene;
+	SceneRenderer::SharedPtr mpSceneRenderer;
 
-    bool mRayTrace = true;
-    RtProgramVars::SharedPtr mpRtVars;
-    RtState::SharedPtr mpRtState;
-    RtSceneRenderer::SharedPtr mpRtRenderer;
-    Texture::SharedPtr mpRtOut;
+	RtProgram::SharedPtr mpRaytraceProgram = nullptr;
+	GraphicsProgram::SharedPtr mpRasterProgram = nullptr;
+	GraphicsVars::SharedPtr mpProgramVars = nullptr;
+	GraphicsState::SharedPtr mpGraphicsState = nullptr;
+	Camera::SharedPtr mpCamera;
+	FirstPersonCameraController mCamController;
 
-
-
-
-    // GUI stuff
-
-
-    // Rays
-    int32_t mpMaxRecursionDepth = 3;
-    float mpTMin = TMIN;
-    float mpTMax = TMAX;
-
-    bool mpUniformLight = true;
-
-    // Camera
-    float mpCamSpeed = 0.25f;
-    bool mpLightOnCamera = false;
+	bool mRayTrace = true;
+	RtProgramVars::SharedPtr mpRtVars;
+	RtState::SharedPtr mpRtState;
+	RtSceneRenderer::SharedPtr mpRtRenderer;
+	Texture::SharedPtr mpRtOut;
 
 
 
-    void setPerFrameVars(const Fbo* pTargetFbo);
-    void renderRT(RenderContext* pContext, const Fbo* pTargetFbo);
-    void renderRaster(RenderContext* pContext);
-    void loadScene(const std::string& filename, const Fbo* pTargetFbo);
+
+	// GUI stuff
+
+
+	// Rays
+	int32_t mpMaxRecursionDepth = 3;
+	float mpTMin = TMIN;
+	float mpTMax = TMAX;
+
+	bool mpUniformLight = true;
+
+	// Camera
+	float mpCamSpeed = 0.25f;
+	bool mpLightOnCamera = false;
+	OutputType mpOutputType = OutputType::Result;
+
+	bool mpOutputSwitches[4] = { false };
+
+	void setPerFrameVars(const Fbo* pTargetFbo);
+	void renderRT(RenderContext* pContext, const Fbo* pTargetFbo);
+	void renderRaster(RenderContext* pContext);
+	void loadScene(const std::string& filename, const Fbo* pTargetFbo);
 };
