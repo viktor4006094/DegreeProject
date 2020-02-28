@@ -82,6 +82,7 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 		addOutputSwitch("Specular", OutputType::Specular);
 		addOutputSwitch("Diffuse", OutputType::Diffuse);
 		addOutputSwitch("Reflectivity", OutputType::Reflectivity);
+		addOutputSwitch("Reflections", OutputType::Reflections);
 
 		setOptionFromSwitches();
 

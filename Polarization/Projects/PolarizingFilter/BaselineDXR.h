@@ -44,7 +44,8 @@ public:
 		Specular     = 1, ///< Specular output (no reflections)
 		Diffuse      = 2, ///< Diffuse output (no refelctions)
 		Reflectivity = 3, ///< Percentage of light that gets reflected
-		Result       = 4, ///< The resulting image
+		Reflections  = 4, ///< The color of the reflected light
+		Result       = 5, ///< The resulting image
 	};
 
 	void onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext) override;
@@ -90,7 +91,7 @@ private:
 	bool mpLightOnCamera = false;
 	OutputType mpOutputType = OutputType::Result;
 
-	bool mpOutputSwitches[4] = { false };
+	bool mpOutputSwitches[5] = { false };
 
 	void setPerFrameVars(const Fbo* pTargetFbo);
 	void renderRT(RenderContext* pContext, const Fbo* pTargetFbo);

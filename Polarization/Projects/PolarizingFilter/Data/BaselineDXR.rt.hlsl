@@ -47,7 +47,8 @@ __import BRDF;
 #define SHOW_SPECULAR     (1)
 #define SHOW_DIFFUSE      (2)
 #define SHOW_REFLECTIVITY (3)
-#define SHOW_RESULT       (4)
+#define SHOW_REFLECTIONS  (4)
+#define SHOW_RESULT       (5)
 
 
 
@@ -144,6 +145,7 @@ bool checkLightHit(uint lightIndex, float3 origin)
 	return rayData.hit;
 }
 
+// TODO move BRDF calculations to before the Traceray call and only trace reflections if the reflection value is high enough
 float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float3 worldRayDir, uint hitDepth)
 {
 	float3 finalColor = float3(0, 0, 0);
@@ -172,12 +174,15 @@ float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float
 		//sr.specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, sd.NdotV, ls.NdotH, ls.NdotL, ls.LdotH));
 		//sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
 
-
-		float3 H = normalize(-worldRayDir + ray.Direction);
-		float NdotV = saturate(dot(sd.N, -worldRayDir));
+		float3 test = normalize(worldRayDir);
+		float3 rayDir = normalize(ray.Direction);
+		
+		float3 H = normalize(-test + rayDir);
+		float NdotV = abs(dot(sd.N, -test)) + 1e-5;
 		float NdotH = saturate(dot(sd.N, H));
-		float NdotL = saturate(dot(sd.N, ray.Direction));
-		float LdotH = saturate(dot(ray.Direction, H));
+		float NdotL = saturate(dot(sd.N, rayDir));
+		float LdotH = saturate(dot(rayDir, H));
+		float VdotH = saturate(dot(-test, H));
 
 
 		//float D = calcGGX(sd.roughness, NdotH); // Distribution of facets orientation
@@ -187,8 +192,17 @@ float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float
 		//float3 specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
 		//specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
 
-		float3 specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, NdotV, NdotH, NdotL, LdotH));
-		float3 reflection = sd.specular * reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
+
+		float  D = calcGGX(sd.roughness, NdotH); // Distribution of facets orientation
+		float  V = calcSmithGGX(NdotL, NdotV, sd.roughness); // Masking and shadowing // V = G/(4*NdotL*NdotV)
+		//float3 F = calcFresnelSchlick(surfaceSpecular, 1, max(0, LdotH)); // Fresnel coeff
+		float3 F = calcFresnelSchlick(sd.specular, 1, max(0, LdotH)); // Fresnel coeff
+		
+		float3 specularBrdf = saturate(V*D)*F;
+		//float3 specularBrdf = saturate(V*D)*F;
+		//float3 reflection = float3(0.1) * reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
+		//float3 reflection = reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
+		float3 reflection = specularBrdf * reflectColor * NdotL; //TODO! should NdotL even be here
 
 		finalColor += reflection;
 		//finalColor = specularBrdf * reflectColor;
@@ -205,7 +219,7 @@ float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float
 
 
 	
-	return finalColor;
+	return saturate(finalColor);
 }
 
 
@@ -250,27 +264,38 @@ float3 calcDiffuse(float3 color, float NdotL)
 /////////////////////////////////////////////////////////////////////////////////////
 // No need to change these functions
 
+// D
 float calcGGX(float roughness, float NdotH)
 {
 	float a2 = roughness * roughness;
-	float d = ((NdotH * a2 - NdotH) * NdotH + 1);
-	return a2 / (d * d);
+	float d = ((NdotH * a2 - NdotH) * NdotH + 1.0);
+	return a2 / (M_PI * d * d);
+	//return saturate(a2 / (M_PI * d * d));
 }
 
+
+// V
 float calcSmithGGX(float NdotL, float NdotV, float roughness)
 {
-	// Optimized version of Smith, already taking into account the division by (4 * NdotV)
+	// Optimized version of Smith, already taking into account the division by (4 * NdotV * NdotL)
 	float a2 = roughness * roughness;
 	// `NdotV *` and `NdotL *` are inversed. It's not a mistake.
-	float ggxv = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
+	float ggxv = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2); // (NdotV * NdotV * (1-a2)+a2) = 
 	float ggxl = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
 	return 0.5f / (ggxv + ggxl);
+	//return saturate(0.5f / (ggxv + ggxl));
 }
 
+
+//TODO might be using an incorrect value here
+// F
 float3 calcFresnelSchlick(float3 f0, float3 f90, float u)
 {
 	return f0 + (f90 - f0) * pow(1 - u, 5);
 }
+
+
+
 
 /////////////////////////////////////////////////////////////////////////////////////
 
@@ -284,12 +309,20 @@ sd.NdotV     f (unclamped)
 sd.specular  f3
 */
 
-float3 calcSpecularBrdf(float3 surfaceSpecular, float roughness, float NdotV, float NdotH, float NdotL, float LdotH)
+
+// LdotH changed to VdotH
+float3 calcSpecularBrdf(float3 f0, float roughness, float NdotV, float NdotH, float NdotL, float LdotH)
 {
 	float  D = calcGGX(roughness, NdotH); // Distribution of facets orientation
-	float  G = calcSmithGGX(NdotL, NdotV, roughness); // Masking and shadowing
-	float3 F = calcFresnelSchlick(surfaceSpecular, 1, max(0, LdotH)); // Fresnel coeff
-	return D * G * F * M_INV_PI; //TODO mention this in some way
+	float  V = calcSmithGGX(NdotL, NdotV, roughness); // Masking and shadowing // V = G/(4*NdotL*NdotV)
+	//float3 F = calcFresnelSchlick(surfaceSpecular, 1, max(0, LdotH)); // Fresnel coeff
+	float3 F = calcFresnelSchlick(f0, 1, max(0, LdotH)); // Fresnel coeff
+
+	return ((D * V) * F);
+	//return F;
+	//return saturate(D*V)*F;
+	//return saturate(D);
+	//return (D/1000);
 }
 
 //**************************************************************************
@@ -326,7 +359,10 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 	//sd.roughness = 0.75;
 	//sd.roughness = sd.linearRoughness;
 	//sd.specular = float3(0.5);
-	//sd.roughness = 0.1;
+	//sd.roughness = 0.5;
+	//if (sd.roughness > 0.9) {
+		//sd.roughness = 0.7;	
+	//}
 
 	// Shoot a reflection ray
 	float3 reflectColor = getReflectionColor(sd, posW, v, rayDirW, hitData.depth.r);
@@ -379,18 +415,25 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 
 
 			// If the light doesn't hit the surface or we are viewing the surface from the back, return
-			if (ls.NdotL > 0) {
+			if (ls.NdotL > 0.00) {
 				//ls.specular = float3(0.0, 0.8, 0.0);
 				//ls.diffuse = float3(0.0, 0.9, 0.0);
 
 
-				sd.NdotV = saturate(sd.NdotV);
+				sd.NdotV = abs(sd.NdotV) + 1e-5;
+				float VdotH = saturate(dot(sd.V, normalize(sd.V + ls.L)));
 
 
+				//float r_a = (sd.Ior - 1.0);
+				//float r_b = (sd.Ior + 1.0);
+				
+				//float reflectance = (r_a * r_a) / (r_b * r_b);
+				//float f0 = 0.16 * reflectance * reflectance * (1.0 - sd.spec)
+				
 				// Calculate the specular term
 				sr.specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, sd.NdotV, ls.NdotH, ls.NdotL, ls.LdotH));
 				sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
-				dbgSpecular += sr.specular;
+				dbgSpecular += sr.specularBrdf;//*ls.NdotL;
 				sr.color.rgb += sr.specular;
 
 				// Calculate the diffuse term
@@ -399,7 +442,7 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 				sr.diffuse = ls.diffuse * calcDiffuse(sd.diffuse.rgb, ls.NdotL);
 
 				// Compensating for fresnel
-				float3 F = calcFresnelSchlick(sd.specular, 1, max(0, ls.LdotH)); // Fresnel coeff
+				float3 F = calcFresnelSchlick(sd.specular, 1, max(0, VdotH)); // Fresnel coeff
 				float comp = (F.r + F.g + F.b) / 3.0;
 				sr.diffuse += (sr.diffuse * (1.0 - comp));
 
@@ -409,10 +452,8 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 				sr.color.a = sd.opacity;
 				// Apply the shadow factor
 				//sr.color.rgb *= 1;
-				color = sr.color.rgb;
+				color += sr.color.rgb;
 			}
-
-
 		}
 		hitData.color.rgb = color;
 
@@ -436,6 +477,8 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 	} else if (outputType == SHOW_DIFFUSE) {
 		hitData.color.rgb = dbgDiffuse;
 	} else if (outputType == SHOW_REFLECTIVITY) {
+		hitData.color.rgb = reflectColor;
+	} else if (outputType == SHOW_REFLECTIONS) {
 		hitData.color.rgb = reflectColor;
 	} else {
 
