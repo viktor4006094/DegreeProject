@@ -76,7 +76,7 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 
 	if (pGui->beginGroup("Rays", true)) {
 		// TODO: rename
-		pGui->addIntSlider("Recursion depth", mpMaxRecursionDepth, 0, 4, false, 100.0f);
+		pGui->addIntSlider("Recursion depth", mpMaxRecursionDepth, 0, 5, false, 100.0f);
 		pGui->addFloatSlider("TMax", mpTMax, 0.0f, TMAX, false, "%.2f");
 		pGui->addFloatSlider("TMin", mpTMin, 0.0f, TMIN, false, "%1.6f");
 		pGui->addFloatSlider("ReflectionCutoff", mpReflectionCutoff, 0.0f, 0.1f, false, "%1.4f");
@@ -117,7 +117,10 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 
 void BaselineDXR::loadScene(const std::string& filename, const Fbo* pTargetFbo)
 {
-	mpScene = RtScene::loadFromFile(filename, RtBuildFlags::None, Model::LoadFlags::RemoveInstancing);
+	//TODO test on Turing hardware, both FPS and memory. No change on GTX 1070
+	Falcor::RtBuildFlags buildFlags = RtBuildFlags::FastTrace | RtBuildFlags::AllowCompaction;
+
+	mpScene = RtScene::loadFromFile(filename, buildFlags, Model::LoadFlags::RemoveInstancing);
 
 	Model::SharedPtr pModel = mpScene->getModel(0);
 	float radius = pModel->getRadius();
@@ -170,7 +173,7 @@ void BaselineDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext
 	//TODO Should be hard-coded for the testing
 	// Used to be 3
 	// 1 for calling TraceRay from RayGen, 1 for calling it from the primary-ray ClosestHitShader for reflections, 1 for reflection ray tracing a shadow ray
-	mpRtState->setMaxTraceRecursionDepth(5);
+	mpRtState->setMaxTraceRecursionDepth(6);
 	//mpRtState->setMaxTraceRecursionDepth(mpMaxRecursionDepth);
 }
 
@@ -274,8 +277,8 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 	config.windowDesc.title = "BaselineDXR";
 	config.windowDesc.resizableWindow = true;
 
-	config.windowDesc.width = 960;
-	config.windowDesc.height = 540;
+	config.windowDesc.width = 2*960;
+	config.windowDesc.height = 2*540;
 
 
 	Sample::run(config, pRenderer);
