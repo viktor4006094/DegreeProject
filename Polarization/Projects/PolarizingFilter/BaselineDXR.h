@@ -92,6 +92,7 @@ private:
 	OutputType mpOutputType = OutputType::Result;
 
 	bool mpOutputSwitches[5] = { false };
+	float mpReflectionCutoff = 0.0f;
 
 	void setPerFrameVars(const Fbo* pTargetFbo);
 	void renderRT(RenderContext* pContext, const Fbo* pTargetFbo);

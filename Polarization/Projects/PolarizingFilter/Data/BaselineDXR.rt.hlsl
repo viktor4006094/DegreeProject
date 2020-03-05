@@ -27,10 +27,13 @@
 ***************************************************************************/
 RWTexture2D<float4> gOutput;
 __import Raytracing;
-
-__import Shading;
 __import Lights;
-__import BRDF;
+
+
+/*
+* TODO
+*	Look over which flags to use
+*/
 
 
 #define M_PI     3.14159265358979323846
@@ -38,11 +41,14 @@ __import BRDF;
 #define M_INV_PI 0.3183098861837906715
 
 #define MAX_RAY_DEPTH (3)
+
 //#define MISS_COLOR (float4(0.53f, 0.81f, 0.92f, 1))
-#define MISS_COLOR (float4(1,1,1,1))
-//#define MISS_COLOR (float4(0.2,0.2,0.2,1.0))
+//#define MISS_COLOR (float4(1,1,1,1))
+#define MISS_COLOR (float4(0.7,0.7,0.7,1.0))
 //#define MISS_COLOR (float4(0.9,0.,0.,1.0))
 
+
+// Output types
 #define SHOW_NORMALS      (0)
 #define SHOW_SPECULAR     (1)
 #define SHOW_DIFFUSE      (2)
@@ -51,208 +57,52 @@ __import BRDF;
 #define SHOW_RESULT       (5)
 
 
+//**************************************************************************************************
+// Constant buffers
+//**************************************************************************************************
 
 shared
 cbuffer PerFrameCB
 {
 	float4x4 invView;
 	float4x4 invModel;
-	float2 viewportDims;
-	float tanHalfFovY;
+	float2   viewportDims;
+	float    tanHalfFovY;
 };
 
-
-//TODO look into what shared actually means in this case
+//TODO rewrite as defines for the performance test
 shared
 cbuffer SettingsCB
 {
-	int maxRecursionDepth;
+	int   maxRecursionDepth;
 	float tMin;
 	float tMax;
-	bool uniformLighting; // i.e., diffuse and reflections but no specular.
-	int outputType;
+	bool  uniformLighting; // i.e. no specular but 100% diffuse and reflections
+	int   outputType;
+	float reflectionCutoff;
 };
 
-struct PrimaryRayPayload
+//**************************************************************************************************
+// Ray payloads
+//**************************************************************************************************
+
+struct Payload
 {
 	float4 color;
-	uint depth;
-	float hitT;
-
-	//For debugging
-	float3 normal;
-	
-};
-
-struct ShadowRayData
-{
-	bool hit;
+	uint   depth;
+	float  hitT;
 };
 
 
 
-
-// New shadow ray payload
-struct ShadowRayPayload
-{
-	float visibility; // 0.0 means shadowed, 1.0 means hit
-};
-
-struct IndirectPayload
-{
-	float3 color;
-	uint depth;
-};
-
-
-//**************************************************************************
-// Helper functions
-//**************************************************************************
-
-
-
-
-
-
-float shootShadowRay(RayDesc ray)
-{
-	ShadowRayPayload shadowPayload = { 0.0f }; //TODO: check which initial val it should have
-
-	// TODO: look over which flags to use
-	uint flags = RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_CLOSEST_HIT_SHADER;
-
-	TraceRay(gRtScene, flags, 0xFF, 1, hitProgramCount, 1, ray, shadowPayload);
-	return shadowPayload.visibility;
-}
-
-
-
-// Old functions
-
-
-bool checkLightHit(uint lightIndex, float3 origin)
-{
-	float3 direction = gLights[lightIndex].posW - origin;
-	RayDesc ray;
-	ray.Origin = origin;
-	ray.Direction = normalize(direction);
-	ray.TMin = tMin;
-	ray.TMax = max(tMin + 0.01, length(direction));
-
-	ShadowRayData rayData;
-	rayData.hit = true;
-	TraceRay(gRtScene, RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, 0xFF, 1 /* ray index */, hitProgramCount, 1, ray, rayData);
-	return rayData.hit;
-}
-
-// TODO move BRDF calculations to before the Traceray call and only trace reflections if the reflection value is high enough
-float3 getReflectionColor(ShadingData sd, float3 worldOrigin, VertexOut v, float3 worldRayDir, uint hitDepth)
-{
-	float3 finalColor = float3(0, 0, 0);
-	float3 reflectColor = float3(0, 0, 0);
-	//if (hitDepth < MAX_RAY_DEPTH)
-	if (hitDepth < maxRecursionDepth) {
-		PrimaryRayPayload secondaryRay;
-		secondaryRay.depth.r = hitDepth + 1;
-		RayDesc ray;
-		ray.Origin = worldOrigin;
-		ray.Direction = reflect(worldRayDir, v.normalW);
-		ray.TMin = tMin;
-		ray.TMax = tMax;
-		TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, ray, secondaryRay);
-		reflectColor = secondaryRay.hitT == -1 ? MISS_COLOR.rgb : secondaryRay.color.rgb;
-		//reflectColor = secondaryRay.hitT == -1 ? 0 : secondaryRay.color.rgb;
-		//float falloff = max(1, (secondaryRay.hitT * secondaryRay.hitT));
-		//reflectColor *= 20 / falloff;
-
-		//finalColor += reflectColor;
-
-
-
-
-		//TODO use brdf stuff here
-		//sr.specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, sd.NdotV, ls.NdotH, ls.NdotL, ls.LdotH));
-		//sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
-
-		float3 test = normalize(worldRayDir);
-		float3 rayDir = normalize(ray.Direction);
-		
-		float3 H = normalize(-test + rayDir);
-		float NdotV = abs(dot(sd.N, -test)) + 1e-5;
-		float NdotH = saturate(dot(sd.N, H));
-		float NdotL = saturate(dot(sd.N, rayDir));
-		float LdotH = saturate(dot(rayDir, H));
-		float VdotH = saturate(dot(-test, H));
-
-
-		//float D = calcGGX(sd.roughness, NdotH); // Distribution of facets orientation
-		//float G = calcSmithGGX(NdotL, NdotV, sd.roughness); // Masking and shadowing
-		//float3 F = calcFresnelSchlick(sd.specular, 1, max(0, LdotH)); // Fresnel coeff
-		////return D * G * F * M_INV_PI; //TODO mention this in some way
-		//float3 specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
-		//specularBrdf = saturate(D * G * F * M_INV_PI); //TODO mention this in some way
-
-
-		float  D = calcGGX(sd.roughness, NdotH); // Distribution of facets orientation
-		float  V = calcSmithGGX(NdotL, NdotV, sd.roughness); // Masking and shadowing // V = G/(4*NdotL*NdotV)
-		//float3 F = calcFresnelSchlick(surfaceSpecular, 1, max(0, LdotH)); // Fresnel coeff
-		float3 F = calcFresnelSchlick(sd.specular, 1, max(0, LdotH)); // Fresnel coeff
-		
-		float3 specularBrdf = saturate(V*D)*F;
-		//float3 specularBrdf = saturate(V*D)*F;
-		//float3 reflection = float3(0.1) * reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
-		//float3 reflection = reflectColor * specularBrdf * NdotL; //TODO! should NdotL even be here
-		float3 reflection = specularBrdf * reflectColor * NdotL; //TODO! should NdotL even be here
-
-		finalColor += reflection;
-		//finalColor = specularBrdf * reflectColor;
-
-
-
-		// only for debugging
-		if (outputType == SHOW_REFLECTIVITY) {
-			finalColor = specularBrdf * NdotL;
-		}
-	} else {
-		//finalColor = float3(0.318, 0.318, 0.318); // 1/PI
-	}
-
-
-	
-	return saturate(finalColor);
-}
-
-
-//**************************************************************************
-// Shadow rays
-//**************************************************************************
-
-// TODO: make one of these empty since the same default value will always be used
-[shader("miss")]
-void shadowMiss(inout ShadowRayPayload payload)
-{
-	payload.visibility = 1.0f;
-}
-
-// empty since shadow payload is considered not-visible by default
-[shader("anyhit")]
-void shadowAnyHit(inout ShadowRayPayload payload, in BuiltInTriangleIntersectionAttributes attribs)
-{}
-
-
-
-
-
-
-
-
-
-
-
+//**************************************************************************************************
+// Shading functions
+//**************************************************************************************************
+//TODO rename roughness arguments to a or alpha
 
 /** Lambertian diffuse
 */
-float3 calcDiffuse(float3 color, float NdotL)
+float3 Fd_Lambert(float3 color, float NdotL)
 {
 	if (uniformLighting) {
 		return color * M_INV_PI;
@@ -261,84 +111,119 @@ float3 calcDiffuse(float3 color, float NdotL)
 	}
 }
 
-/////////////////////////////////////////////////////////////////////////////////////
-// No need to change these functions
-
-// D
-float calcGGX(float roughness, float NdotH)
+/** GGX Normal Distribution Function (D)
+*/
+float D_GGX(float roughness, float NdotH)
 {
 	float a2 = roughness * roughness;
 	float d = ((NdotH * a2 - NdotH) * NdotH + 1.0);
 	return a2 / (M_PI * d * d);
-	//return saturate(a2 / (M_PI * d * d));
 }
 
-
-// V
-float calcSmithGGX(float NdotL, float NdotV, float roughness)
-{
-	// Optimized version of Smith, already taking into account the division by (4 * NdotV * NdotL)
-	float a2 = roughness * roughness;
-	// `NdotV *` and `NdotL *` are inversed. It's not a mistake.
-	float ggxv = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2); // (NdotV * NdotV * (1-a2)+a2) = 
-	float ggxl = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
-	return 0.5f / (ggxv + ggxl);
-	//return saturate(0.5f / (ggxv + ggxl));
-}
-
-
-//TODO might be using an incorrect value here
-// F
-float3 calcFresnelSchlick(float3 f0, float3 f90, float u)
-{
-	return f0 + (f90 - f0) * pow(1 - u, 5);
-}
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-
-/*
-Things used
-
-sd.roughness f
-ls.NdotH     f (unclamped)
-ls.NdotL     f (unclamped)
-sd.NdotV     f (unclamped)
-sd.specular  f3
+/** Smith-GGX Visibility Function (V)
+    V = G/(4*NdotL*NdotV)
 */
-
-
-// LdotH changed to VdotH
-float3 calcSpecularBrdf(float3 f0, float roughness, float NdotV, float NdotH, float NdotL, float LdotH)
+float V_SmithGGX(float NdotL, float NdotV, float roughness)
 {
-	float  D = calcGGX(roughness, NdotH); // Distribution of facets orientation
-	float  V = calcSmithGGX(NdotL, NdotV, roughness); // Masking and shadowing // V = G/(4*NdotL*NdotV)
-	//float3 F = calcFresnelSchlick(surfaceSpecular, 1, max(0, LdotH)); // Fresnel coeff
-	float3 F = calcFresnelSchlick(f0, 1, max(0, LdotH)); // Fresnel coeff
-
-	return ((D * V) * F);
-	//return F;
-	//return saturate(D*V)*F;
-	//return saturate(D);
-	//return (D/1000);
+	float a2 = roughness * roughness;
+	float ggxv = NdotL * sqrt((-NdotV * a2 + NdotV) * NdotV + a2);
+	float ggxl = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
+	return 0.5 / (ggxv + ggxl);
 }
 
-//**************************************************************************
-// Primary rays
-//**************************************************************************
+/** Schlick's Approximation Fresnel Function (F)
+    f90 has been hard-coded to 1.0
+*/
+float3 F_Schlick(float3 f0, float u)
+{
+	return f0 + (1.0 - f0) * pow(1.0 - u, 5.0);
+}
 
+//sd.specular, sd.roughness, sd.NdotV, ls.NdotH, ls.NdotL, ls.LdotH
+/** Cook-Torrance Specular Term
+*/
+float3 CookTorrance(ShadingData sd, LightSample ls)
+{
+	float  D = D_GGX(sd.roughness, ls.NdotH);
+	float  V = V_SmithGGX(ls.NdotL, sd.NdotV, sd.roughness);
+	float3 F = F_Schlick(sd.specular, max(0, ls.LdotH));
+
+	return (D * V * ls.NdotL) * F; //TODO test moving out NdotL from here and check brightness diff
+}
+
+
+//**************************************************************************************************
+// Helper functions
+//**************************************************************************************************
+
+
+/** 
+*/
+float3 getReflectionColor(ShadingData sd, float3 originW, float3 v, uint hitDepth)
+{
+	float3 reflectColor = float3(0.0, 0.0, 0.0);
+
+	if (hitDepth < maxRecursionDepth) {
+		RayDesc reflectionRay;
+		reflectionRay.Origin = originW;
+		reflectionRay.Direction = reflect(-v, sd.N);
+		reflectionRay.TMin = tMin;
+		reflectionRay.TMax = tMax;
+
+		float3 H = normalize(v + reflectionRay.Direction);
+		float NdotV = saturate(dot(sd.N, v));
+		float NdotL = saturate(dot(sd.N, reflectionRay.Direction));
+		float LdotH = saturate(dot(reflectionRay.Direction, H));
+		float VdotH = saturate(dot(v, H));
+
+		if (NdotL > 0.0) {
+			float  V = V_SmithGGX(NdotL, NdotV, sd.roughness);
+			float3 F = F_Schlick(sd.specular, max(0, LdotH));
+
+			//saturate to prevent blown out colors
+			float3 specularBrdf = saturate(V * NdotL * F);
+
+			//TODO remove?
+			// Only trace rays if at least reflectionCutoff of the incoming light will be reflected
+			if (luminance(specularBrdf) > reflectionCutoff) {
+				Payload rPayload;
+				rPayload.depth.r = hitDepth + 1;
+
+				TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, reflectionRay, rPayload);
+				reflectColor = (rPayload.hitT == -1.0) ? MISS_COLOR.rgb : rPayload.color.rgb;
+			}
+
+			reflectColor *= specularBrdf;// * NdotL;
+
+			// only for debugging
+			if (outputType == SHOW_REFLECTIVITY) {
+				reflectColor = saturate(V * NdotL * F);
+			}
+		}
+	}
+	return saturate(reflectColor);
+}
+
+
+
+//**************************************************************************************************
+// Primary rays
+//**************************************************************************************************
+
+/**
+*/
 [shader("miss")]
-void primaryMiss(inout PrimaryRayPayload hitData)
+void primaryMiss(inout Payload hitData)
 {
 	hitData.color = MISS_COLOR;
-	hitData.hitT = -1;
+	hitData.hitT = -1.0;
 }
 
 
+/**
+*/
 [shader("closesthit")]
-void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleIntersectionAttributes attribs)
+void primaryClosestHit(inout Payload hitData, in BuiltInTriangleIntersectionAttributes attribs)
 {
 	// Get the hit-point data
 	float3 rayOrigW = WorldRayOrigin();
@@ -348,58 +233,28 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 
 	float3 posW = rayOrigW + hitT * rayDirW;
 	// prepare the shading data
-	VertexOut v = getVertexAttributes(triangleIndex, attribs);
-	ShadingData sd = prepareShadingData(v, gMaterial, rayOrigW, 0);
+	VertexOut va = getVertexAttributes(triangleIndex, attribs);
+	ShadingData sd = prepareShadingData(va, gMaterial, rayOrigW, 0);
 
-	//sd.diffuse *= 1.5;
-	//sd.roughness = 0.9;
-	//sd.diffuse = saturate(sd.diffuse+float3(0.1));
-	//sd.diffuse = float3(0.5);
-	//sd.specular = float3(0.03);
-	//sd.roughness = 0.75;
-	//sd.roughness = sd.linearRoughness;
-	//sd.specular = float3(0.5);
-	//sd.roughness = 0.5;
-	//if (sd.roughness > 0.9) {
-		//sd.roughness = 0.7;	
-	//}
 
 	// Shoot a reflection ray
-	float3 reflectColor = getReflectionColor(sd, posW, v, rayDirW, hitData.depth.r);
+	float3 reflectColor = getReflectionColor(sd, posW, -rayDirW, hitData.depth.r);
 	float3 color = 0;
+
+	//TODO remove for performance test
 	float3 dbgSpecular = 0;
 	float3 dbgDiffuse = 0;
 	
 
 	if (uniformLighting) {
 		// uniform has diffuse but no specular since there are no light sources
-		color += calcDiffuse(sd.diffuse.rgb, 0);
+		color += Fd_Lambert(sd.diffuse.rgb, 0);
 		hitData.color.rgb = color;
+		dbgDiffuse = color;
 	} else {
+
 		[unroll]
 		for (int i = 0; i < gLightsCount; i++) {
-			//if (checkLightHit(i, posW) == false)
-
-			float3 direction = gLights[i].posW - posW;
-			RayDesc shadowRay;
-			shadowRay.Origin = posW;
-			shadowRay.Direction = normalize(direction);
-			shadowRay.TMin = 0.001;
-			shadowRay.TMax = max(0.01, length(direction));
-
-			// TODO test without if-statement
-				//if (shootShadowRay(shadowRay) == 0.0)
-				//{
-				//    continue;
-				//}
-				//if (shootShadowRay(shadowRay) != 0.0)
-			//{
-			//    color += evalMaterial(sd, gLights[i], 1).color.xyz;
-			//}
-			//color += (shootShadowRay(shadowRay) * evalMaterial(sd, gLights[i], 1).color.xyz);
-
-				//color += evalMaterial(sd, gLights[i], 1).color.xyz; // diffuse
-
 
 			/* initShadingResult */
 			ShadingResult sr;
@@ -410,39 +265,27 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 			sr.diffuseBrdf = 0;
 			sr.specularBrdf = 0;
 
-			/* evalLight(gLights[i], sd) */
+
 			LightSample ls = evalLight(gLights[i], sd);
 
 
 			// If the light doesn't hit the surface or we are viewing the surface from the back, return
-			if (ls.NdotL > 0.00) {
-				//ls.specular = float3(0.0, 0.8, 0.0);
-				//ls.diffuse = float3(0.0, 0.9, 0.0);
-
-
-				sd.NdotV = abs(sd.NdotV) + 1e-5;
+			if (ls.NdotL > 0.0) {
 				float VdotH = saturate(dot(sd.V, normalize(sd.V + ls.L)));
 
-
-				//float r_a = (sd.Ior - 1.0);
-				//float r_b = (sd.Ior + 1.0);
-				
-				//float reflectance = (r_a * r_a) / (r_b * r_b);
-				//float f0 = 0.16 * reflectance * reflectance * (1.0 - sd.spec)
-				
 				// Calculate the specular term
-				sr.specularBrdf = saturate(calcSpecularBrdf(sd.specular, sd.roughness, sd.NdotV, ls.NdotH, ls.NdotL, ls.LdotH));
-				sr.specular = ls.specular * sr.specularBrdf * ls.NdotL;
+				sr.specularBrdf = saturate(CookTorrance(sd, ls));
+				sr.specular = ls.specular * sr.specularBrdf;// * ls.NdotL;
 				dbgSpecular += sr.specularBrdf;//*ls.NdotL;
 				sr.color.rgb += sr.specular;
 
 				// Calculate the diffuse term
 				//sr.diffuseBrdf = saturate(evalDiffuseBrdf(sd, ls));
 				//sr.diffuse = ls.diffuse * sr.diffuseBrdf * ls.NdotL;
-				sr.diffuse = ls.diffuse * calcDiffuse(sd.diffuse.rgb, ls.NdotL);
+				sr.diffuse = ls.diffuse * Fd_Lambert(sd.diffuse.rgb, ls.NdotL);
 
 				// Compensating for fresnel
-				float3 F = calcFresnelSchlick(sd.specular, 1, max(0, VdotH)); // Fresnel coeff
+				float3 F = F_Schlick(sd.specular, max(0, VdotH)); // Fresnel coeff
 				float comp = (F.r + F.g + F.b) / 3.0;
 				sr.diffuse += (sr.diffuse * (1.0 - comp));
 
@@ -450,28 +293,24 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 				sr.color.rgb += sr.diffuse;
 				
 				sr.color.a = sd.opacity;
-				// Apply the shadow factor
-				//sr.color.rgb *= 1;
+
 				color += sr.color.rgb;
 			}
 		}
 		hitData.color.rgb = color;
-
-
-
 	}
 
-	//float roughness = min(0.5, max(1e-8, sd.roughness));
-
 	// both uniform and light source types have reflections
-	//hitData.color.rgb += reflectColor; //sd.specular * reflectColor * (roughness * roughness);
-	hitData.color.rgb += reflectColor; //sd.specular * reflectColor * (roughness * roughness);
-
+	hitData.color.rgb += reflectColor;
 	hitData.color.rgb += sd.emissive;
+	hitData.color.a = 1;
+	
+	hitData.hitT = hitT;
 
 
+	// Debugging outputs
 	if (outputType == SHOW_NORMALS) {
-		hitData.color.rgb = v.normalW;
+		hitData.color.rgb = sd.N;
 	} else if (outputType == SHOW_SPECULAR) {
 		hitData.color.rgb = dbgSpecular;
 	} else if (outputType == SHOW_DIFFUSE) {
@@ -483,19 +322,15 @@ void primaryClosestHit(inout PrimaryRayPayload hitData, in BuiltInTriangleInters
 	} else {
 
 	}
-
-
-	
-	hitData.hitT = hitT;
-	hitData.color.a = 1;
 }
 
 
-
-//**************************************************************************
+//**************************************************************************************************
 // Ray generation
-//**************************************************************************
+//**************************************************************************************************
 
+/** Shader entry point
+*/
 [shader("raygeneration")]
 void rayGen()
 {
@@ -516,7 +351,7 @@ void rayGen()
 	ray.TMin = 0; // no self 
 	ray.TMax = tMax;
 
-	PrimaryRayPayload payload;
+	Payload payload;
 	payload.depth = 0;
 	payload.color = 0;
 	TraceRay(gRtScene, 0 /*rayFlags*/, 0xFF, 0 /* ray index*/, hitProgramCount, 0, ray, payload);

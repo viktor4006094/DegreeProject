@@ -72,9 +72,19 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 		}
 	}
 
-	for (uint32_t i = 0; i < mpScene->getLightCount(); i++) {
-		std::string group = "Point Light" + std::to_string(i);
-		mpScene->getLight(i)->renderUI(pGui, group.c_str());
+
+
+	if (pGui->beginGroup("Rays", true)) {
+		// TODO: rename
+		pGui->addIntSlider("Recursion depth", mpMaxRecursionDepth, 0, 4, false, 100.0f);
+		pGui->addFloatSlider("TMax", mpTMax, 0.0f, TMAX, false, "%.2f");
+		pGui->addFloatSlider("TMin", mpTMin, 0.0f, TMIN, false, "%1.6f");
+		pGui->addFloatSlider("ReflectionCutoff", mpReflectionCutoff, 0.0f, 0.1f, false, "%1.4f");
+		pGui->addCheckBox("Uniform light", mpUniformLight);
+		pGui->addCheckBox("Attach light", mpLightOnCamera);
+
+
+		pGui->endGroup();
 	}
 
 	if (pGui->beginGroup("Output", true)) {
@@ -89,20 +99,6 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 		pGui->endGroup();
 	}
 
-
-	if (pGui->beginGroup("Rays", true)) {
-		// TODO: rename
-		pGui->addIntSlider("Recursion depth", mpMaxRecursionDepth, 0, 4, false, 100.0f);
-		pGui->addFloatSlider("TMax", mpTMax, 0.0f, TMAX, false, "%.2f");
-		pGui->addFloatSlider("TMin", mpTMin, 0.0f, TMIN, false, "%1.6f");
-		pGui->addCheckBox("Uniform light", mpUniformLight);
-
-		pGui->addCheckBox("Attach light", mpLightOnCamera);
-
-
-		pGui->endGroup();
-	}
-
 	if (pGui->beginGroup("Camera")) {
 
 		if (pGui->addFloatSlider("Speed", mpCamSpeed, 0.02f, 10.0f, false, "%.2f")) {
@@ -110,8 +106,12 @@ void BaselineDXR::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 		}
 
 
-
 		pGui->endGroup();
+	}
+
+	for (uint32_t i = 0; i < mpScene->getLightCount(); i++) {
+		std::string group = "Point Light" + std::to_string(i);
+		mpScene->getLight(i)->renderUI(pGui, group.c_str());
 	}
 }
 
@@ -152,7 +152,6 @@ void BaselineDXR::onLoad(SampleCallbacks* pSample, RenderContext* pRenderContext
 	RtProgram::Desc rtProgDesc;
 	rtProgDesc.addShaderLibrary("BaselineDXR.rt.hlsl").setRayGen("rayGen");
 	rtProgDesc.addHitGroup(0, "primaryClosestHit", "").addMiss(0, "primaryMiss");
-	rtProgDesc.addHitGroup(1, "", "shadowAnyHit").addMiss(1, "shadowMiss");
 
 	mpRaytraceProgram = RtProgram::create(rtProgDesc);
 
@@ -203,11 +202,10 @@ void BaselineDXR::setPerFrameVars(const Fbo* pTargetFbo)
 	pCB["tMax"] = mpTMax;
 	pCB["uniformLighting"] = mpUniformLight;
 	pCB["outputType"] = static_cast<int32_t>(mpOutputType);
+	pCB["reflectionCutoff"] = mpReflectionCutoff;
 
 	//TODO move, this only works for point lights
 	if (mpLightOnCamera) {
-		//mpScene->getLight(0)->move(mpCamera->getPosition(), mpCamera->getTarget(), mpCamera->getUpVector());
-
 		std::dynamic_pointer_cast<Falcor::PointLight>(mpScene->getLight(0))->setWorldPosition(mpScene->getActiveCamera()->getPosition());
 	}
 }
