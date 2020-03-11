@@ -116,6 +116,7 @@ struct ShadingData
     float2 height;
     float IoR;
     bool doubleSidedMaterial;
+    float metalness;
 };
 
 #define interfacify(a) typedef a I##a

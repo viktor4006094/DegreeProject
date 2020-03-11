@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Data">
+      <UniqueIdentifier>{5ad81c70-0880-4571-9f05-ad80b98de9e7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Data\Polarized.rt.hlsl">
+      <Filter>Data</Filter>
+    </FxCompile>
+    <FxCompile Include="Data\Baseline.rt.hlsl">
+      <Filter>Data</Filter>
+    </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="PerformanceTest.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="PerformanceTest.h" />
+    <ClInclude Include="Settings.h" />
+  </ItemGroup>
+</Project>

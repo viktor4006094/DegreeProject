@@ -177,7 +177,10 @@ namespace Falcor
     }
 
     // The max scalars supported by our driver
-    #define FALCOR_RT_MAX_PAYLOAD_SIZE_IN_BYTES (14 * sizeof(float))
+    //#define FALCOR_RT_MAX_PAYLOAD_SIZE_IN_BYTES (14 * sizeof(float))
+
+    // Value increased to support larger payloads. Works fine on RTX 2070 Super
+    #define FALCOR_RT_MAX_PAYLOAD_SIZE_IN_BYTES (64 * sizeof(float))
 
     // DXGI
     MAKE_SMART_COM_PTR(IDXGISwapChain3);

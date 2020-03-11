@@ -35,3 +35,4 @@ Framework/Externals/*
 !Framework/Externals/dear_imgui_addons/imguinodegrapheditor/
 Media
 /Source/Externals/.packman/pybind11
+/Polarization/Projects/Baseline/.vs/Baseline/v16/Browse.VC.db
