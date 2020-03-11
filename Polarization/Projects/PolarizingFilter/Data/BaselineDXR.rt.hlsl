@@ -169,7 +169,9 @@ float3 getReflectionColor(ShadingData sd, float3 originW, float3 v, uint hitDept
 		reflectionRay.TMin = tMin;
 		reflectionRay.TMax = tMax;
 
+		//TODO? replace H with N for reflections
 		float3 H = normalize(v + reflectionRay.Direction);
+		//float3 H = normalize(sd.N);
 		float NdotV = saturate(dot(sd.N, v));
 		float NdotL = saturate(dot(sd.N, reflectionRay.Direction));
 		float LdotH = saturate(dot(reflectionRay.Direction, H));
