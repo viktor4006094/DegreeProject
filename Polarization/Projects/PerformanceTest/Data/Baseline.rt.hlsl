@@ -32,7 +32,8 @@ RWTexture2D<float4> gOutput;
 __import Raytracing;
 __import Lights;
 
-#include "../../../Polarization/Projects/PerformanceTest/Settings.h"
+#define TMIN 0.001
+#define TMAX 10000.0
 
 #define M_PI     3.14159265358979323846
 #define M_PI2    6.28318530717958647692

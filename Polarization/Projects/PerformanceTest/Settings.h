@@ -1,25 +1,28 @@
 #pragma once
 
-#define SCENE_ARCADE 1
-#define SCENE_TEMPLE 2
-#define SCENE_BISTRO 3
+#define SCENE_ARCADE 0
+#define SCENE_TEMPLE 1
+#define SCENE_BISTRO 2
 #define SCENE_EXPERIMENTAL 4
 
+#define VERSION_BASELINE  0
 #define VERSION_POLARIZED 1
-#define VERSION_BASELINE  2
-
-#define TMIN (0.001f)
-#define TMAX (10000.0f)
 
 
-#define TEST_ITERATION 1
+#define MAX_RECURSION_DEPTH 5
+//
+//#define TEST_NR 0
+//#define TEST_ITERATION ((TEST_NR/6)+1)
+//#define ACTIVE_VERSION (TEST_NR%2)
+//#define ACTIVE_SCENE ((TEST_NR/2)%3)
 
 //#define ACTIVE_VERSION VERSION_BASELINE
 #define ACTIVE_VERSION VERSION_POLARIZED
 
-#define ACTIVE_SCENE   SCENE_EXPERIMENTAL
+//#define ACTIVE_SCENE SCENE_ARCADE
+#define ACTIVE_SCENE SCENE_TEMPLE
+//#define ACTIVE_SCENE SCENE_BISTRO
 
-#define MAX_RECURSION_DEPTH 3
 #define RAYS_PER_PIXEL (MAX_RECURSION_DEPTH+1)
 
 
@@ -48,10 +51,11 @@
 
 #define WINDOW_TITLE VERSION_NAME " version. " SCENE_NAME " scene. " 
 
-#define TO_STR_(n) #n
+#define TO_STR__(n) #n
+#define TO_STR_(n) TO_STR__(n)
 #define TO_STR(n) TO_STR_(n)
 
 #define PROFILING_FOLDER "../../../PerformanceTests/"
 
 // Ex: PolarizedArcade3_run4 for the fourth polarized test on arcade with MAX_RECURSION_DEPTH 3
-#define PROFILING_FILE_NAME PROFILING_FOLDER VERSION_NAME SCENE_NAME TO_STR(MAX_RECURSION_DEPTH) "_run" TO_STR(TEST_ITERATION) ".csv"
+#define PROFILING_FILE_NAME PROFILING_FOLDER VERSION_NAME SCENE_NAME

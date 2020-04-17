@@ -127,7 +127,7 @@ void PolarizationRenderer::loadScene(const std::string& filename, const Fbo* pTa
 	Falcor::RtBuildFlags buildFlags = RtBuildFlags::FastTrace | RtBuildFlags::AllowCompaction;
 
 	mpScene = RtScene::loadFromFile(filename, buildFlags, Model::LoadFlags::RemoveInstancing);
-
+	
 	Model::SharedPtr pModel = mpScene->getModel(0);
 	float radius = pModel->getRadius();
 
@@ -163,6 +163,8 @@ void PolarizationRenderer::onLoad(SampleCallbacks* pSample, RenderContext* pRend
 	rtProgDesc.addShaderLibrary(SHADER_NAME).setRayGen("rayGen");
 	rtProgDesc.addHitGroup(0, "primaryClosestHit", "").addMiss(0, "primaryMiss");
 	mpRaytraceProgram = RtProgram::create(rtProgDesc);
+	mpRaytraceProgram->addDefine("MAX_RECURSION_DEPTH", std::to_string(MAX_RECURSION_DEPTH));
+
 
 	mpRtState = RtState::create();
 	mpRtState->setProgram(mpRaytraceProgram);
@@ -176,6 +178,9 @@ void PolarizationRenderer::onLoad(SampleCallbacks* pSample, RenderContext* pRend
 	d3d_call(CreateDXGIFactory2(0, IID_PPV_ARGS(&factoryPtr)));
 	LUID luid = gpDevice->getApiHandle()->GetAdapterLuid();
 	HRESULT hr = factoryPtr->EnumAdapterByLuid(luid, IID_PPV_ARGS(&mpAdapter3));
+
+	pSample->toggleText(false);
+	pSample->toggleUI(true);
 }
 
 void PolarizationRenderer::setPerFrameVars(const Fbo* pTargetFbo)
@@ -205,7 +210,7 @@ void PolarizationRenderer::setPerFrameVars(const Fbo* pTargetFbo)
 
 void PolarizationRenderer::writeVRAMUsageToFile() const
 {
-	std::string test = PROFILING_FILE_NAME;
+	std::string test = PROFILING_FILE_NAME + std::to_string(MAX_RECURSION_DEPTH) + "_run" + std::to_string(TEST_ITERATION) + ".csv";
 	std::ofstream ofs(test.c_str(), std::ofstream::out);
 
 	ofs << "Available (B),Budget (B),Reserved (B),Usage (B)\n"
@@ -281,7 +286,6 @@ int WINAPI WinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, _
 
 	config.windowDesc.width  = 1920;
 	config.windowDesc.height = 1080;
-
 
 	Sample::run(config, pRenderer);
 }
