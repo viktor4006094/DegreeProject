@@ -12,6 +12,9 @@
     <FxCompile Include="Data\Baseline.rt.hlsl">
       <Filter>Data</Filter>
     </FxCompile>
+    <FxCompile Include="Data\Hybrid.rt.hlsl">
+      <Filter>Data</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="PerformanceTest.cpp" />

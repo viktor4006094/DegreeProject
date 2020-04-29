@@ -136,6 +136,7 @@ private:
 	float mpFilterAngle     = 0.0f;
 	float mpFilterCos2Angle = 1.0f;
 	float mpFilterSin2Angle = 0.0f;
+	float mpPolarizationLimit = 0.5f;
 
 	// For profiling
 	IDXGIAdapter3* mpAdapter3 = nullptr;

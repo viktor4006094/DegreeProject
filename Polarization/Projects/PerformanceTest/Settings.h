@@ -7,17 +7,18 @@
 
 #define VERSION_BASELINE  0
 #define VERSION_POLARIZED 1
+#define VERSION_HYBRID    2
 
-
-#define MAX_RECURSION_DEPTH 5
+#define MAX_RECURSION_DEPTH 3
 //
-//#define TEST_NR 0
-//#define TEST_ITERATION ((TEST_NR/6)+1)
+#define TEST_NR 0
+#define TEST_ITERATION ((TEST_NR/6)+1)
 //#define ACTIVE_VERSION (TEST_NR%2)
 //#define ACTIVE_SCENE ((TEST_NR/2)%3)
 
 //#define ACTIVE_VERSION VERSION_BASELINE
-#define ACTIVE_VERSION VERSION_POLARIZED
+//#define ACTIVE_VERSION VERSION_POLARIZED
+#define ACTIVE_VERSION VERSION_HYBRID
 
 //#define ACTIVE_SCENE SCENE_ARCADE
 #define ACTIVE_SCENE SCENE_TEMPLE
@@ -32,6 +33,9 @@
 #elif ACTIVE_VERSION == VERSION_BASELINE
 #define VERSION_NAME "Baseline"
 #define SHADER_NAME  "Baseline.rt.hlsl"
+#elif ACTIVE_VERSION == VERSION_HYBRID
+#define VERSION_NAME "Hybrid"
+#define SHADER_NAME  "Hybrid.rt.hlsl"
 #endif
 
 
@@ -55,7 +59,8 @@
 #define TO_STR_(n) TO_STR__(n)
 #define TO_STR(n) TO_STR_(n)
 
-#define PROFILING_FOLDER "../../../PerformanceTests/"
+//#define PROFILING_FOLDER "../../../PerformanceTests/"
+#define PROFILING_FOLDER "C:/Users/nalo/Desktop/VRAMTests/"
 
 // Ex: PolarizedArcade3_run4 for the fourth polarized test on arcade with MAX_RECURSION_DEPTH 3
 #define PROFILING_FILE_NAME PROFILING_FOLDER VERSION_NAME SCENE_NAME

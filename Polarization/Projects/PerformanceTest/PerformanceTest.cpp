@@ -93,6 +93,10 @@ void PolarizationRenderer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 		mCamController.setCameraSpeed(mpCamSpeed);
 	}
 
+	if (pGui->beginGroup("Hybrid settings", true)) {
+		pGui->addFloatSlider("Limit", mpPolarizationLimit, 0.0, 1.0);
+	}
+
 	if (pGui->beginGroup("Polarizing filter", true)) {
 		pGui->addCheckBox("Enable", mpFilterEnabled);
 		if (pGui->addFloatSlider("Angle", mpFilterAngle, 0.0, 180)) {
@@ -162,6 +166,9 @@ void PolarizationRenderer::onLoad(SampleCallbacks* pSample, RenderContext* pRend
 	RtProgram::Desc rtProgDesc;
 	rtProgDesc.addShaderLibrary(SHADER_NAME).setRayGen("rayGen");
 	rtProgDesc.addHitGroup(0, "primaryClosestHit", "").addMiss(0, "primaryMiss");
+#if ACTIVE_VERSION == VERSION_HYBRID
+	rtProgDesc.addHitGroup(1, "simpleClosestHit", "").addMiss(1, "simpleMiss");
+#endif
 	mpRaytraceProgram = RtProgram::create(rtProgDesc);
 	mpRaytraceProgram->addDefine("MAX_RECURSION_DEPTH", std::to_string(MAX_RECURSION_DEPTH));
 
@@ -201,6 +208,10 @@ void PolarizationRenderer::setPerFrameVars(const Fbo* pTargetFbo)
 	pCB["missColor"] = mpMissColor;
 	pCB["filterSin2A"] = mpFilterSin2Angle;
 	pCB["filterEnabled"] = mpFilterEnabled;
+#if ACTIVE_VERSION == VERSION_HYBRID
+	pCB["polarizationLimit"] = mpPolarizationLimit;
+#endif
+
 
 	// Move point light if attach light is enabled
 	if (mpLightOnCamera && mpScene->getLight(0)->getType() == LightPoint) {
