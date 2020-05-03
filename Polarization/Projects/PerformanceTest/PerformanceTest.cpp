@@ -93,10 +93,6 @@ void PolarizationRenderer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 		mCamController.setCameraSpeed(mpCamSpeed);
 	}
 
-	if (pGui->beginGroup("Hybrid settings", true)) {
-		pGui->addFloatSlider("Limit", mpPolarizationLimit, 0.0, 1.0);
-	}
-
 	if (pGui->beginGroup("Polarizing filter", true)) {
 		pGui->addCheckBox("Enable", mpFilterEnabled);
 		if (pGui->addFloatSlider("Angle", mpFilterAngle, 0.0, 180)) {
@@ -208,10 +204,6 @@ void PolarizationRenderer::setPerFrameVars(const Fbo* pTargetFbo)
 	pCB["missColor"] = mpMissColor;
 	pCB["filterSin2A"] = mpFilterSin2Angle;
 	pCB["filterEnabled"] = mpFilterEnabled;
-#if ACTIVE_VERSION == VERSION_HYBRID
-	pCB["polarizationLimit"] = mpPolarizationLimit;
-#endif
-
 
 	// Move point light if attach light is enabled
 	if (mpLightOnCamera && mpScene->getLight(0)->getType() == LightPoint) {

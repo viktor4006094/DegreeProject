@@ -111,6 +111,15 @@ void PolarizationDemoRenderer::onGuiRender(SampleCallbacks* pSample, Gui* pGui)
 			mpRaytraceProgram->removeDefine("POLARIZED_VERSION");
 		}
 	}
+	if (mpPolarized) {
+		if (pGui->addCheckBox("Hybrid", mpHybrid)) {
+			if (mpHybrid) {
+				mpRaytraceProgram->addDefine("HYBRID_VERSION");
+			} else {
+				mpRaytraceProgram->removeDefine("HYBRID_VERSION");
+			}
+		}
+	}
 
 
 	if (pGui->addButton("Load Scene")) {
@@ -220,8 +229,14 @@ void PolarizationDemoRenderer::onLoad(SampleCallbacks* pSample, RenderContext* p
 	RtProgram::Desc rtProgDesc;
 	rtProgDesc.addShaderLibrary("PolarizedDemo.rt.hlsl").setRayGen("rayGen");
 	rtProgDesc.addHitGroup(0, "primaryClosestHit", "").addMiss(0, "primaryMiss");
+	rtProgDesc.addHitGroup(1, "simpleClosestHit", "").addMiss(1, "simpleMiss");
 	mpRaytraceProgram = RtProgram::create(rtProgDesc);
-	mpRaytraceProgram->addDefine("POLARIZED_VERSION");
+	if (mpPolarized) {
+		mpRaytraceProgram->addDefine("POLARIZED_VERSION");
+	}
+	if (mpHybrid) {
+		mpRaytraceProgram->addDefine("HYBRID_VERSION");
+	}
 
 	mpRtState = RtState::create();
 	mpRtState->setProgram(mpRaytraceProgram);

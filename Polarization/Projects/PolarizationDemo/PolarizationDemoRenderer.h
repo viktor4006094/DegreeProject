@@ -159,6 +159,7 @@ private:
 	float mpTMax         = TMAX;
 	bool  mpUniformLight = false;
 	bool  mpPolarized    = true;
+	bool  mpHybrid       = true;
 
 	// For profiling
 	IDXGIAdapter3* mpAdapter3 = nullptr;
