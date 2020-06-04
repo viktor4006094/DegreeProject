@@ -1,0 +1,2 @@
+Application,SwapChainAddress,Runtime,SyncInterval,PresentFlags,AllowsTearing,PresentMode,Dropped,TimeInSeconds,MsBetweenPresents,MsBetweenDisplayChangeActual,MsUntilRenderComplete,MsUntilDisplayed,GPUOnlyPower(W),TotalMinusUSBCPower(W),TotalPower(W),AMDPower(W),PerfPerWattGPUOnly(F/J),PerfPerWattTotalMinusUSBC(F/J),PerfPerWattTotal(F/J),PerfPerWattAMD(F/J)
+devenv.exe,0x0000000027921140,D3D9,-1,0,0,Composed: Copy with GPU GDI,0,9.227231,1.005,0.000,21.340,44.436,,,,,,,,

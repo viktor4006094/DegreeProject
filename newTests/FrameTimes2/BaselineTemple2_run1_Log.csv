@@ -1,0 +1,2 @@
+NumRenderFrames,NumDisplayFrames,Time (ms),RenderMin,RenderMax,RenderAvg,DisplayMin,DisplayMax,DisplayAvg,Render90,Render95,Render99,Display90,Display95,Display99
+922,916,10096,61.4,246.0,96.9,35.8,181818.2,96.3,93.7,92.3,90.3,71.6,71.2,48.0

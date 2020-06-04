@@ -1,0 +1,292 @@
+% Print marker from average data file instead of the last point
+%
+% Draw a solid line at the median and keep the variance semi-transparent
+% Raw data should be marks only?
+%
+%
+%
+
+
+\documentclass[tikz]{standalone}
+\usepackage{mathptmx}
+
+\usepackage{varwidth}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.15}
+\usepgfplotslibrary{units}
+\usepgfplotslibrary{colorbrewer}
+
+\usetikzlibrary{decorations.markings}
+\usetikzlibrary{arrows,fit,calc,angles,quotes}
+
+\usepackage{tikz-3dplot}
+\usepackage{tkz-fct}
+\usepackage{siunitx}
+\usepackage{pgfplotstable}
+\usepgfplotslibrary{groupplots}
+
+\pgfplotsset{
+    mark last*/.style={
+        scatter,
+        scatter src=x,
+        scatter/@pre marker code/.code={
+            \pgfmathtruncatemacro\usemark{
+                (\coordindex==(\numcoords-1))
+            }
+            \ifnum\usemark=0
+                \pgfplotsset{mark=none}
+            \fi
+        },
+        scatter/@post marker code/.code={}
+    }
+}
+
+\begin{filecontents}{avg.dat}
+t
+1
+\end{filecontents}
+
+
+
+
+
+
+\definecolor{Dark2-3-1}{RGB}{27,158,119}
+\definecolor{Dark2-3-A}{RGB}{27,158,119}
+\definecolor{Dark2-3-2}{RGB}{217,95,2}
+\definecolor{Dark2-3-B}{RGB}{217,95,2}
+\definecolor{Dark2-3-3}{RGB}{117,112,179}
+\definecolor{Dark2-3-C}{RGB}{117,112,179}
+\definecolor{Dark2-4-1}{RGB}{27,158,119}
+\definecolor{Dark2-4-A}{RGB}{27,158,119}
+\definecolor{Dark2-4-2}{RGB}{217,95,2}
+\definecolor{Dark2-4-B}{RGB}{217,95,2}
+\definecolor{Dark2-4-3}{RGB}{117,112,179}
+\definecolor{Dark2-4-C}{RGB}{117,112,179}
+\definecolor{Dark2-4-4}{RGB}{231,41,138}
+\definecolor{Dark2-4-D}{RGB}{231,41,138}
+\definecolor{Dark2-5-1}{RGB}{27,158,119}
+\definecolor{Dark2-5-A}{RGB}{27,158,119}
+\definecolor{Dark2-5-2}{RGB}{217,95,2}
+\definecolor{Dark2-5-B}{RGB}{217,95,2}
+\definecolor{Dark2-5-3}{RGB}{117,112,179}
+\definecolor{Dark2-5-C}{RGB}{117,112,179}
+\definecolor{Dark2-5-4}{RGB}{231,41,138}
+\definecolor{Dark2-5-D}{RGB}{231,41,138}
+\definecolor{Dark2-5-5}{RGB}{102,166,30}
+\definecolor{Dark2-5-E}{RGB}{102,166,30}
+\definecolor{Dark2-6-1}{RGB}{27,158,119}
+\definecolor{Dark2-6-A}{RGB}{27,158,119}
+\definecolor{Dark2-6-2}{RGB}{217,95,2}
+\definecolor{Dark2-6-B}{RGB}{217,95,2}
+\definecolor{Dark2-6-3}{RGB}{117,112,179}
+\definecolor{Dark2-6-C}{RGB}{117,112,179}
+\definecolor{Dark2-6-4}{RGB}{231,41,138}
+\definecolor{Dark2-6-D}{RGB}{231,41,138}
+\definecolor{Dark2-6-5}{RGB}{102,166,30}
+\definecolor{Dark2-6-E}{RGB}{102,166,30}
+\definecolor{Dark2-6-6}{RGB}{230,171,2}
+\definecolor{Dark2-6-F}{RGB}{230,171,2}
+\definecolor{Dark2-7-1}{RGB}{27,158,119}
+\definecolor{Dark2-7-A}{RGB}{27,158,119}
+\definecolor{Dark2-7-2}{RGB}{217,95,2}
+\definecolor{Dark2-7-B}{RGB}{217,95,2}
+\definecolor{Dark2-7-3}{RGB}{117,112,179}
+\definecolor{Dark2-7-C}{RGB}{117,112,179}
+\definecolor{Dark2-7-4}{RGB}{231,41,138}
+\definecolor{Dark2-7-D}{RGB}{231,41,138}
+\definecolor{Dark2-7-5}{RGB}{102,166,30}
+\definecolor{Dark2-7-E}{RGB}{102,166,30}
+\definecolor{Dark2-7-6}{RGB}{230,171,2}
+\definecolor{Dark2-7-F}{RGB}{230,171,2}
+\definecolor{Dark2-7-7}{RGB}{166,118,29}
+\definecolor{Dark2-7-G}{RGB}{166,118,29}
+\definecolor{Dark2-8-1}{RGB}{27,158,119}
+\definecolor{Dark2-8-A}{RGB}{27,158,119}
+\definecolor{Dark2-8-2}{RGB}{217,95,2}
+\definecolor{Dark2-8-B}{RGB}{217,95,2}
+\definecolor{Dark2-8-3}{RGB}{117,112,179}
+\definecolor{Dark2-8-C}{RGB}{117,112,179}
+\definecolor{Dark2-8-4}{RGB}{231,41,138}
+\definecolor{Dark2-8-D}{RGB}{231,41,138}
+\definecolor{Dark2-8-5}{RGB}{102,166,30}
+\definecolor{Dark2-8-E}{RGB}{102,166,30}
+\definecolor{Dark2-8-6}{RGB}{230,171,2}
+\definecolor{Dark2-8-F}{RGB}{230,171,2}
+\definecolor{Dark2-8-7}{RGB}{166,118,29}
+\definecolor{Dark2-8-G}{RGB}{166,118,29}
+\definecolor{Dark2-8-8}{RGB}{102,102,102}
+\definecolor{Dark2-8-H}{RGB}{102,102,102}
+
+
+
+\begin{document}
+
+\def\figWidth{14cm}
+\def\polMark{mark=pentagon*}
+\def\baseMark{mark=x,}
+
+\newcommand{\testLine}[2]{%
+	\addplot+[%
+		forget plot,
+		color = Dark2-5-#2,
+% 		only marks,
+% 		opacity=0.5,
+% 		mark options={scale=0.2},
+		opacity=0.25,
+	] table[%
+		x=TimeInSeconds, 
+		col sep=comma,
+% 		y=MsUntilRenderComplete,
+		y=MsBetweenPresents,
+% 		y expr= (1000/(\thisrowno{11})),
+	] {#1};
+}
+
+\newcommand{\testLineMark}[1]{%
+	\addplot+[%
+		forget plot,
+% 		opacity=0.5,
+		mark=o,
+		mark last*,
+		mark size=6pt,
+	] table[%
+		x=TimeInSeconds, 
+		col sep=comma,
+% 		y=MsUntilRenderComplete,
+		y=MsBetweenPresents,
+% 		y expr= (1000/(\thisrowno{11})),
+	] {#1};
+}
+
+%1: input table, 2: input column, 3: output table, 4: output column
+\newcommand{\copycolumn}[4]{
+\pgfplotstablecreatecol[                                                                                                
+         col sep=comma,
+         create col/copy column from table={#1}{#2}                                                      
+         ]{#4}{#3}   
+}
+
+\newcommand*{\ReadOutElement}[4]{%
+    \pgfplotstablegetelem{#2}{#3}\of{#1}%
+    \let#4\pgfplotsretval
+}
+
+\newcommand{\getVal}[2]{%
+	\pgfplotstablegetelement{[index]1}{#2}\of{#1}
+}
+
+\def\Scene{Arcade}
+% \def\Scene{Temple}
+% \def\Scene{Bistro}
+
+\begin{tikzpicture}
+
+\begin{axis}[%
+	cycle list/Dark2,
+% 	cycle multi list={
+% 		red,blue,green,orange,black\nextlist
+% 		mark=*,mark=x,\nextlist
+% 		solid,solid
+% 	},
+    %only marks,
+%     width=\figWidth,
+	width=14cm,
+	height=10cm,
+    %width=20cm,
+    % scatter,
+    %width=\textwidth,
+%     axis y line*=left,
+%     y dir=reverse,
+    ymin=0,
+    ymax=14, %Arcade
+%     ymax=55, %Temple
+%     ymax=75, %Bistro
+    xmin=0,
+    xmax=9,
+    %>=stealth,
+    xlabel={Time},
+    x unit=\si{\second},
+    ylabel={Frametime (lower is better)},
+    y unit=\si{\milli\second},
+    legend pos=north east,
+    legend style={%
+%     	at={(0.5,0.97)},
+%     	anchor=north,
+    	legend cell align=left, font=\footnotesize},
+    legend columns=5,
+%     legend entries={$1$, $2$, $3$, $4$, $5$, Baseline, Polarized, Raw Data},
+    transpose legend
+]
+	% Create an intermediate table to read averages from
+% 	\pgfplotstableread{avg.dat}\datafile  
+
+	\addlegendimage{empty legend}
+	\addlegendentry{}
+	\addlegendimage{very thick, dashed, black}
+	\addlegendentry{Average polarized}
+	\addlegendimage{very thick, black}
+	\addlegendentry{Average baseline}
+	\addlegendimage{black,opacity=0.3}
+	\addlegendentry{Raw data}
+	\addlegendimage{empty legend}
+	\addlegendentry{}
+
+	\addlegendimage{thick,only marks, Dark2-5-5}
+	\addlegendentry{$5$ recursions}
+	\addlegendimage{thick,only marks, Dark2-5-4}
+	\addlegendentry{$4$ rec.}
+	\addlegendimage{thick,only marks, Dark2-5-3}
+	\addlegendentry{$3$ rec.}
+	\addlegendimage{thick,only marks, Dark2-5-2}
+	\addlegendentry{$2$ rec.}
+	\addlegendimage{thick,only marks, Dark2-5-1}
+	\addlegendentry{$1$ rec.}
+	
+	
+    	\pgfplotsinvokeforeach{5,4,3,2,1}{
+    		\foreach\runIt in {1,2,3}{
+    			% Plot raw data
+    			\testLine{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Baseline\Scene#1_run\runIt_Report.csv}{#1}
+			\testLine{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Polarized\Scene#1_run\runIt_Report.csv}{#1}
+			
+			% Save averages
+% 			\copycolumn{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/BaselineTemple#1_run\runIt_Log.csv}{RenderAvg}{\datafile}{Baseline#1run\runIt} % make sure column names are unique in output
+    		}
+    	}
+    	\pgfplotsinvokeforeach{5,4,3,2,1}{
+		% Average Baseline
+		\pgfplotstableread[col sep=comma]{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Baseline\Scene#1_run1_Log.csv}\datafile
+    		\pgfplotstablegetelem{0}{RenderAvg}\of\datafile
+		\pgfmathsetmacro{\testValA}{1000/\pgfplotsretval}
+		\pgfplotstableread[col sep=comma]{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Baseline\Scene#1_run2_Log.csv}\datafile
+    		\pgfplotstablegetelem{0}{RenderAvg}\of\datafile
+		\pgfmathsetmacro{\testValB}{1000/\pgfplotsretval}
+		\pgfplotstableread[col sep=comma]{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Baseline\Scene#1_run3_Log.csv}\datafile
+    		\pgfplotstablegetelem{0}{RenderAvg}\of\datafile
+		\pgfmathsetmacro{\testValC}{1000/\pgfplotsretval}
+		\pgfmathsetmacro{\avgVal}{(\testValA+\testValB+\testValC)/3.0}
+		\edef\drawline{\noexpand\draw[very thick,color = Dark2-5-#1] (0, \avgVal) -- (10,\avgVal);}
+		\drawline
+		
+		% Average Polarized
+		\pgfplotstableread[col sep=comma]{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Polarized\Scene#1_run1_Log.csv}\datafile
+    		\pgfplotstablegetelem{0}{RenderAvg}\of\datafile
+		\pgfmathsetmacro{\testValA}{1000/\pgfplotsretval}
+		\pgfplotstableread[col sep=comma]{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Polarized\Scene#1_run2_Log.csv}\datafile
+    		\pgfplotstablegetelem{0}{RenderAvg}\of\datafile
+		\pgfmathsetmacro{\testValB}{1000/\pgfplotsretval}
+		\pgfplotstableread[col sep=comma]{C:/Users/nalo/Desktop/TestsCopy/RenamedFrameTime#1/Polarized\Scene#1_run3_Log.csv}\datafile
+    		\pgfplotstablegetelem{0}{RenderAvg}\of\datafile
+		\pgfmathsetmacro{\testValC}{1000/\pgfplotsretval}
+		\pgfmathsetmacro{\avgVal}{(\testValA+\testValB+\testValC)/3.0}
+		\edef\drawline{\noexpand\draw[very thick,dashed,color = Dark2-5-#1] (0, \avgVal) -- (10,\avgVal);}
+		\drawline
+	
+    	}
+
+\end{axis}
+
+\end{tikzpicture}
+
+\end{document}

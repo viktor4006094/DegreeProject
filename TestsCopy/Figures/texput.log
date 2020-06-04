@@ -1,0 +1,17 @@
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (MiKTeX 2.9.7350 64-bit) (preloaded format=pdflatex 2020.4.23)  29 APR 2020 03:21
+entering extended mode
+**C:/Users/nalo/Desktop/TestsCopy/Figures/FrameTimeGraph.tex.preview.tex
+
+! Emergency stop.
+<*> ...Copy/Figures/FrameTimeGraph.tex.preview.tex
+                                                   
+Here is how much of TeX's memory you used:
+ 3 strings out of 480934
+ 76 string characters out of 4650385
+ 15239327 words of memory out of 30000000
+ 15976 multiletter control sequences out of 15000+200000
+ 532338 words of font info for 24 fonts, out of 5000000 for 9000
+ 1141 hyphenation exceptions out of 8191
+ 0i,0n,0p,1b,6s stack positions out of 5000i,500n,10000p,5000000b,50000s
+
+!  ==> Fatal error occurred, no output PDF file produced!

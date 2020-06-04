@@ -1,0 +1,9 @@
+Application,SwapChainAddress,Runtime,SyncInterval,PresentFlags,AllowsTearing,PresentMode,Dropped,TimeInSeconds,MsBetweenPresents,MsBetweenDisplayChangeActual,MsUntilRenderComplete,MsUntilDisplayed,GPUOnlyPower(W),TotalMinusUSBCPower(W),TotalPower(W),AMDPower(W),PerfPerWattGPUOnly(F/J),PerfPerWattTotalMinusUSBC(F/J),PerfPerWattTotal(F/J),PerfPerWattAMD(F/J)
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,4.755412,6.859,13.914,15.596,30.908,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,4.787390,31.978,13.886,2.744,12.815,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,6.696158,1908.768,1903.939,0.507,7.986,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,6.699114,2.956,20.842,17.292,25.872,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,6.706049,6.934,13.888,25.231,32.825,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,7.401817,695.768,722.691,40.687,59.748,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,7.426248,24.431,0.001,21.016,35.317,,,,,,,,
+SearchUI.exe,0x0000000000000000,Other,-1,0,0,Composed: Composition Atlas,0,7.448399,22.152,27.785,18.623,40.950,,,,,,,,
