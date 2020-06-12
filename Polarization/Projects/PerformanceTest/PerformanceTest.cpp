@@ -191,18 +191,18 @@ void PolarizationRenderer::setPerFrameVars(const Fbo* pTargetFbo)
 	PROFILE("setPerFrameVars");
 	GraphicsVars* pVars = mpRtVars->getGlobalVars().get();
 	ConstantBuffer::SharedPtr pCB = pVars->getConstantBuffer("PerFrameCB");
-	pCB["invView"] = glm::inverse(mpCamera->getViewMatrix());
-	pCB["viewportDims"] = vec2(pTargetFbo->getWidth(), pTargetFbo->getHeight());
 	float fovY = focalLengthToFovY(mpCamera->getFocalLength(), Camera::kDefaultFrameHeight);
-	pCB["tanHalfFovY"] = tanf(fovY * 0.5f);
+	pCB["invView"]      = glm::inverse(mpCamera->getViewMatrix());
+	pCB["viewportDims"] = vec2(pTargetFbo->getWidth(), pTargetFbo->getHeight());
+	pCB["tanHalfFovY"]  = tanf(fovY * 0.5f);
 
 	pCB = pVars->getConstantBuffer("SettingsCB");
-	pCB["metalIoRn"] = mpMetalIoRn;
-	pCB["nonMetalIoRn"] = mpNonMetalIoRn;
-	pCB["metalIoRk"] = mpMetalIoRk;
-	pCB["filterCos2A"] = mpFilterCos2Angle;
-	pCB["missColor"] = mpMissColor;
-	pCB["filterSin2A"] = mpFilterSin2Angle;
+	pCB["metalIoRn"]     = mpMetalIoRn;
+	pCB["nonMetalIoRn"]  = mpNonMetalIoRn;
+	pCB["metalIoRk"]     = mpMetalIoRk;
+	pCB["filterCos2A"]   = mpFilterCos2Angle;
+	pCB["missColor"]     = mpMissColor;
+	pCB["filterSin2A"]   = mpFilterSin2Angle;
 	pCB["filterEnabled"] = mpFilterEnabled;
 
 	// Move point light if attach light is enabled
@@ -213,16 +213,16 @@ void PolarizationRenderer::setPerFrameVars(const Fbo* pTargetFbo)
 
 void PolarizationRenderer::writeVRAMUsageToFile() const
 {
-	std::string test = PROFILING_FILE_NAME + std::to_string(MAX_RECURSION_DEPTH) + "_run" + std::to_string(TEST_ITERATION) + ".csv";
-	std::ofstream ofs(test.c_str(), std::ofstream::out);
+	//std::string test = PROFILING_FILE_NAME + std::to_string(MAX_RECURSION_DEPTH) + "_run" + std::to_string(TEST_ITERATION) + ".csv";
+	//std::ofstream ofs(test.c_str(), std::ofstream::out);
 
-	ofs << "Available (B),Budget (B),Reserved (B),Usage (B)\n"
-		<< mVidMemInfo.AvailableForReservation << ","
-		<< mVidMemInfo.Budget << ","
-		<< mVidMemInfo.CurrentReservation << ","
-		<< mVidMemInfo.CurrentUsage << "\n";
+	//ofs << "Available (B),Budget (B),Reserved (B),Usage (B)\n"
+	//	<< mVidMemInfo.AvailableForReservation << ","
+	//	<< mVidMemInfo.Budget << ","
+	//	<< mVidMemInfo.CurrentReservation << ","
+	//	<< mVidMemInfo.CurrentUsage << "\n";
 
-	ofs.close();
+	//ofs.close();
 }
 
 void PolarizationRenderer::onFrameRender(SampleCallbacks* pSample, RenderContext* pRenderContext, const Fbo::SharedPtr& pTargetFbo)

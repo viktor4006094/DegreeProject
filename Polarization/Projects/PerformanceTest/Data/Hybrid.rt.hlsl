@@ -209,8 +209,6 @@ void rotateStokes(inout float4 S, float c2p, float s2p)
 */
 void rotateReferenceFrame(inout StokesLight light, float3 newX, float3 dir)
 {
-	//TODO find some decent reference to how this math
-	//INPUTS FLIPPED??
 	float dotX = dot(light.referenceX, newX);
 	float detX = dot(dir, cross(light.referenceX, newX));
 	float phi = atan2(detX, dotX);
@@ -229,7 +227,7 @@ void rotateReferenceFrame(inout StokesLight light, float3 newX, float3 dir)
 */
 void slAddEquals(inout StokesLight a, StokesLight b, float3 dir)
 {
-	// Mmake sure b's reference frame matches a's before adding them
+	// Make sure b's reference frame matches a's before adding them
 	rotateReferenceFrame(b, a.referenceX, dir);
 	SL_ADD_EQ_POL(a, b);
 }
@@ -321,8 +319,8 @@ float4x4 F_MuellerMatrix(float n, float k, float sinTheta, float cosTheta, float
 	// Fresnel parameters
 	float F_ort = (ortA - ortB)/(ortA + ortB);
 	float F_par = ((parA - parB)/(parA + parB))*F_ort;
-	float D_ort = atan((2*cosTheta)/(ct2 - a2 - b2));
-	float D_par = atan((2*b*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
+	float D_ort = atan((2*b*cosTheta)/(ct2 - a2 - b2));
+	float D_par = atan((2*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
 
 	float phaseDiff = D_ort - D_par;
 

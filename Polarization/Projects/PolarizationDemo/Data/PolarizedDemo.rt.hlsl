@@ -89,7 +89,7 @@ cbuffer SettingsCB
 	int    dbgOutputType;
 	float  tMin;
 	float  tMax;
-	bool   uniformLighting; // i.e. no specular but 100% diffuse and reflections
+	bool   uniformLighting; // i.e., no specular but 100% diffuse and reflections
 };
 
 
@@ -119,7 +119,6 @@ struct StokesLight
 	// local coordinate system's x-axis unit vector
 	float3 referenceX;
 };
-
 
 StokesLight initStokes()
 {
@@ -180,16 +179,11 @@ float3 stokesCompToColor(StokesLight data, int ind)
 #define MD_MUL_EQ_SCALAR(md, s) md.mmR *= s; md.mmG *= s; md.mmB *= s;
 
 
-
-
 //**************************************************************************************************
 // Polarization visualization functions
 //**************************************************************************************************
 #define AVG_OF(func, l) ( ( func##(l##.svR) + func##(l##.svG) + func##(l##.svB) )/3.0 )
 #define AVG_VAL(l, val) ( ( l##.svR.##val + l##.svG.##val + l##.svB.##val )/3.0 )
-
-// TODO rename a bunch of these functions
-// TODO? double check the math in all these functions
 
 //
 // Per-Stokes vector
@@ -300,7 +294,6 @@ Payload initPayload(uint depth)
 	return pay;
 }
 
-
 struct SimplePayload
 {
 	float3 color;
@@ -363,7 +356,7 @@ void rotateReferenceFrame(inout StokesLight light, float3 newX, float3 dir)
 */
 void slAddEquals(inout StokesLight a, StokesLight b, float3 dir)
 {
-	// Mmake sure b's reference frame matches a's before adding them
+	// Make sure b's reference frame matches a's before adding them
 	rotateReferenceFrame(b, a.referenceX, dir);
 	SL_ADD_EQ_POL(a, b);
 }
@@ -457,8 +450,8 @@ float4x4 F_MuellerMatrix(float n, float k, float sinTheta, float cosTheta, float
 	// Fresnel parameters
 	float F_ort = (ortA - ortB)/(ortA + ortB);
 	float F_par = ((parA - parB)/(parA + parB))*F_ort;
-	float D_ort = atan((2*cosTheta)/(ct2 - a2 - b2));
-	float D_par = atan((2*b*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
+	float D_ort = atan((2*b*cosTheta)/(ct2 - a2 - b2));
+	float D_par = atan((2*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
 
 	float phaseDiff = D_ort - D_par;
 
@@ -504,8 +497,6 @@ MuellerData F_Polarizing(float metalness, float sinTheta, float cosTheta, float 
 	mdF.mmB = F_MuellerMatrix(IoR_n.b, IoR_k.b, sinTheta, cosTheta, tanTheta);
 
 
-	//F_MuellerMatrixOpt(mdF, IoR_n, IoR_k, sinTheta, cosTheta, tanTheta);
-	
 	return mdF;
 }
 
@@ -892,16 +883,11 @@ float3 stokesCompToColor(StokesLight data, int ind)
 #define MD_MUL_EQ_SCALAR(md, s) md.mmR *= s; md.mmG *= s; md.mmB *= s;
 
 
-
-
 //**************************************************************************************************
 // Polarization visualization functions
 //**************************************************************************************************
 #define AVG_OF(func, l) ( ( func##(l##.svR) + func##(l##.svG) + func##(l##.svB) )/3.0 )
 #define AVG_VAL(l, val) ( ( l##.svR.##val + l##.svG.##val + l##.svB.##val )/3.0 )
-
-// TODO rename a bunch of these functions
-// TODO? double check the math in all these functions
 
 //
 // Per-Stokes vector
@@ -1058,7 +1044,7 @@ void rotateReferenceFrame(inout StokesLight light, float3 newX, float3 dir)
 */
 void slAddEquals(inout StokesLight a, StokesLight b, float3 dir)
 {
-	// Mmake sure b's reference frame matches a's before adding them
+	// Make sure b's reference frame matches a's before adding them
 	rotateReferenceFrame(b, a.referenceX, dir);
 	SL_ADD_EQ_POL(a, b);
 }
@@ -1152,8 +1138,8 @@ float4x4 F_MuellerMatrix(float n, float k, float sinTheta, float cosTheta, float
 	// Fresnel parameters
 	float F_ort = (ortA - ortB)/(ortA + ortB);
 	float F_par = ((parA - parB)/(parA + parB))*F_ort;
-	float D_ort = atan((2*cosTheta)/(ct2 - a2 - b2));
-	float D_par = atan((2*b*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
+	float D_ort = atan((2*b*cosTheta)/(ct2 - a2 - b2));
+	float D_par = atan((2*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
 
 	float phaseDiff = D_ort - D_par;
 
@@ -1169,66 +1155,6 @@ float4x4 F_MuellerMatrix(float n, float k, float sinTheta, float cosTheta, float
 	                0.0, 0.0,  -S,   C);
 }
 
-
-
-
-void F_MuellerMatrixOpt(inout MuellerData md, float3 n, float3 k, float sinTheta, float cosTheta, float tanTheta)
-{
-	float3 n2 = n*n;
-	float3 k2 = k*k;
-	float st2 = sinTheta*sinTheta;
-	float ct2 = cosTheta*cosTheta;
-
-	float3 left  = sqrt((n2 - k2 - st2)*(n2 - k2 - st2) + 4*n2*k2);
-	float3 right = n2 - k2 - st2;
-
-	float3 a2 = 0.5*(left + right);
-	float3 b2 = 0.5*(left - right);
-
-	float3 a = sqrt(a2);
-	float3 b = sqrt(max(b2,0.0));
-
-	// orthogonal
-	float3 ortA = a2 + b2 + ct2;
-	float3 ortB = 2.0*a*cosTheta;
-
-	// parallel
-	float3 parA = a2 + b2 + st2*tanTheta*tanTheta;
-	float3 parB = 2.0*a*sinTheta*tanTheta;
-
-	// Fresnel parameters
-	float3 F_ort = (ortA - ortB)/(ortA + ortB);
-	float3 F_par = ((parA - parB)/(parA + parB))*F_ort;
-	float3 D_ort = atan((2*cosTheta)/(ct2 - a2 - b2));
-	float3 D_par = atan((2*b*cosTheta*((n2 - k2)*b - 2*n*k*a))/((n2 + k2)*(n2 + k2)*ct2 - a2 - b2));
-
-	float3 phaseDiff = D_ort - D_par;
-
-	// Matrix components
-	float3 A = 0.5*(F_ort + F_par);
-	float3 B = 0.5*(F_ort - F_par);
-	float3 C = cos(phaseDiff)*sqrt(F_ort*F_par);
-	float3 S = sin(phaseDiff)*sqrt(F_ort*F_par);
-
-	
-	md.mmR = float4x4(A.r, B.r,  0.0, 0.0,
-	                  B.r, A.r,  0.0, 0.0,
-	                  0.0, 0.0,  C.r, S.r,
-	                  0.0, 0.0, -S.r, C.r);
-
-	md.mmG = float4x4(A.g, B.g,  0.0, 0.0,
-	                  B.g, A.g,  0.0, 0.0,
-	                  0.0, 0.0,  C.g, S.g,
-	                  0.0, 0.0, -S.g, C.g);
-
-	md.mmB = float4x4(A.b, B.b,  0.0, 0.0,
-	                  B.b, A.b,  0.0, 0.0,
-	                  0.0, 0.0,  C.b, S.b,
-	                  0.0, 0.0, -S.b, C.b);
-}
-
-
-
 /** Polarization sensitive Fresnel Function (F)
 */
 MuellerData F_Polarizing(float metalness, float sinTheta, float cosTheta, float tanTheta)
@@ -1242,9 +1168,6 @@ MuellerData F_Polarizing(float metalness, float sinTheta, float cosTheta, float 
 	mdF.mmG = F_MuellerMatrix(IoR_n.g, IoR_k.g, sinTheta, cosTheta, tanTheta);
 	mdF.mmB = F_MuellerMatrix(IoR_n.b, IoR_k.b, sinTheta, cosTheta, tanTheta);
 
-
-	//F_MuellerMatrixOpt(mdF, IoR_n, IoR_k, sinTheta, cosTheta, tanTheta);
-	
 	return mdF;
 }
 

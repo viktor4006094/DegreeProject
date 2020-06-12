@@ -257,18 +257,18 @@ void PolarizationDemoRenderer::setPerFrameVars(const Fbo* pTargetFbo)
 	PROFILE("setPerFrameVars");
 	GraphicsVars* pVars = mpRtVars->getGlobalVars().get();
 	ConstantBuffer::SharedPtr pCB = pVars->getConstantBuffer("PerFrameCB");
-	pCB["invView"] = glm::inverse(mpCamera->getViewMatrix());
-	pCB["viewportDims"] = vec2(pTargetFbo->getWidth(), pTargetFbo->getHeight());
 	float fovY = focalLengthToFovY(mpCamera->getFocalLength(), Camera::kDefaultFrameHeight);
-	pCB["tanHalfFovY"] = tanf(fovY * 0.5f);
+	pCB["invView"]      = glm::inverse(mpCamera->getViewMatrix());
+	pCB["viewportDims"] = vec2(pTargetFbo->getWidth(), pTargetFbo->getHeight());
+	pCB["tanHalfFovY"]  = tanf(fovY * 0.5f);
 
 	pCB = pVars->getConstantBuffer("SettingsCB");
-	pCB["metalIoRn"] = mpMetalIoRn;
-	pCB["nonMetalIoRn"] = mpNonMetalIoRn;
-	pCB["metalIoRk"] = mpMetalIoRk;
-	pCB["filterCos2A"] = mpFilterCos2Angle;
-	pCB["missColor"] = mpMissColor;
-	pCB["filterSin2A"] = mpFilterSin2Angle;
+	pCB["metalIoRn"]     = mpMetalIoRn;
+	pCB["nonMetalIoRn"]  = mpNonMetalIoRn;
+	pCB["metalIoRk"]     = mpMetalIoRk;
+	pCB["filterCos2A"]   = mpFilterCos2Angle;
+	pCB["missColor"]     = mpMissColor;
+	pCB["filterSin2A"]   = mpFilterSin2Angle;
 	pCB["filterEnabled"] = mpFilterEnabled;
 
 	pCB["maxRecursionDepth"] = mpMaxRecursionDepth;

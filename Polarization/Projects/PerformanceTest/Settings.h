@@ -56,7 +56,7 @@
 #define TO_STR(n) TO_STR_(n)
 
 //#define PROFILING_FOLDER "../../../PerformanceTests/"
-#define PROFILING_FOLDER "C:/Users/nalo/Desktop/newVRAMTests/"
+#define PROFILING_FOLDER "../"
 
 // Ex: PolarizedArcade3_run4 for the fourth polarized test on arcade with MAX_RECURSION_DEPTH 3
 #define PROFILING_FILE_NAME PROFILING_FOLDER VERSION_NAME SCENE_NAME
