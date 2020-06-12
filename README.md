@@ -1,11 +1,11 @@
 Polarizing Filters in Real-Time Ray Tracing With DXR
 ====
-This repository hosts the source code for my master's thesis _Real-Time Ray Tracing With Polarization Parameters_.
+This repository hosts the source code for my master's thesis titled _Real-Time Ray Tracing With Polarization Parameters_.
 
-The project implements three renderers:
-- **Baseline**, which uses conventional shading methods without polarization parameters.
-- **Polarization**, which uses polarization parameters in all rays.
-- **Hybrid**, which uses the _Polarization_ methods/payloads for all primary rays, and the _Baseline_ methods/payloads for all reflection rays.
+Three renderers are implemented in the application:
+- **Baseline** uses conventional shading methods without polarization parameters.
+- **Polarization** uses polarization parameters in all rays.
+- **Hybrid** uses the _Polarization_ version's methods/payloads for all primary rays, and the _Baseline_ version's methods/payloads for all reflection rays.
 
 All three renderers use Whitted-style ray tracing with reflection rays (but no shadow or refraction rays).
 The shader code for the three renderers can be found in [`Baseline.rt.hlsl`](https://github.com/viktor4006094/DegreeProject/blob/master/Polarization/Projects/PerformanceTest/Data/Baseline.rt.hlsl), [`Polarized.rt.hlsl`](https://github.com/viktor4006094/DegreeProject/blob/master/Polarization/Projects/PerformanceTest/Data/Polarized.rt.hlsl), and [`Hybrid.rt.hlsl`](https://github.com/viktor4006094/DegreeProject/blob/master/Polarization/Projects/PerformanceTest/Data/Hybrid.rt.hlsl) respectively.
@@ -34,8 +34,8 @@ Demo Settings
 - **Polarization Output**
 	- **DOP** Degree of Polarization.
 	- **Plane** The angle of linear polarization.
-	- **TOP** Type of Polarization (`blue` is linear, `yellow` is elliptical).
-	- **Chirality** Handedness of elliptical polarization (`yellow` is right-handed, `blue` is left handed).
+	- **TOP** Type of Polarization (_blue_ is linear, _yellow_ is elliptical).
+	- **Chirality** Handedness of elliptical polarization (_blue_ is left handed, _yellow_ is right-handed).
 	- **Sanity** Should result in a black screen unless there are impossible Stokes vectors in the output image.
 	- **Normal** Surface normals in the scene.
 - **Materials** Pre-defined metals can be selected from a list. Their complex index of refraction values can also be set manually.
@@ -55,7 +55,7 @@ Scenes can also be created/modified with the included `SceneEditor` project.
 Versions
 -----
 - [`v1.00`](https://github.com/viktor4006094/DegreeProject/releases/tag/v1.00) Version used to run the performance tests in the thesis
-- [`v1.01`](https://github.com/viktor4006094/DegreeProject/releases/tag/v1.01) Cleaned up version with a minor (non--performance impacting) bug fix.
+- [`v1.01`](https://github.com/viktor4006094/DegreeProject/releases/tag/v1.01) Cleaned up version with a minor (non-performance impacting) bug fix.
 
 Citation
 --------
