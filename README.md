@@ -11,7 +11,7 @@ All three renderers use Whitted-style ray tracing with reflection rays (but no s
 The shader code for the three renderers can be found in [`Baseline.rt.hlsl`](https://github.com/viktor4006094/DegreeProject/blob/master/Polarization/Projects/PerformanceTest/Data/Baseline.rt.hlsl), [`Polarized.rt.hlsl`](https://github.com/viktor4006094/DegreeProject/blob/master/Polarization/Projects/PerformanceTest/Data/Polarized.rt.hlsl), and [`Hybrid.rt.hlsl`](https://github.com/viktor4006094/DegreeProject/blob/master/Polarization/Projects/PerformanceTest/Data/Hybrid.rt.hlsl) respectively.
 A demo project called `PolarizationDemo` is also included to compare the graphical difference between the different renderers.
 
-For more information about the underlying theory and the implementation, see the included [thesis \[pdf\]](). **[TODO]**
+For more information about the underlying theory and the implementation, see the included [thesis \[pdf\]](https://github.com/viktor4006094/DegreeProject/blob/master/GitHubMedia/Documents/Thesis.pdf).
 
 
 Demo Settings
@@ -54,8 +54,8 @@ Scenes can also be created/modified with the included `SceneEditor` project.
 
 Versions
 -----
-- [`v1.00`](https://github.com/viktor4006094/DegreeProject/releases/tag/v1.00) Version used to run the performance tests in the thesis
 - [`v1.01`](https://github.com/viktor4006094/DegreeProject/releases/tag/v1.01) Cleaned up version with a minor (non-performance impacting) bug fix.
+- [`v1.00`](https://github.com/viktor4006094/DegreeProject/releases/tag/v1.00) Version used to run the performance tests in the thesis
 
 Citation
 --------
