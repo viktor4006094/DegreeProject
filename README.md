@@ -16,10 +16,9 @@ For more information about the underlying theory and the implementation, see the
 
 Polarizing filter demonstration
 ----
-<p align="center">
-<div class="img-with-text"><img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="450"/> <p>Some text</p> </div> <div class="img-with-text"><img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="450"/><p>Some other text</p> </div>
-</p>
-
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="450"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="450"/> |
+|:---:|:---:|
+| Some text | Some other text |
 
 Demo Settings
 ----
