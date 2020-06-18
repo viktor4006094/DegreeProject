@@ -14,6 +14,13 @@ A demo project called `PolarizationDemo` is also included to compare the graphic
 For more information about the underlying theory and the implementation, see the included [thesis \[pdf\]](https://github.com/viktor4006094/DegreeProject/blob/master/GitHubMedia/Documents/Thesis.pdf).
 
 
+Polarizing filter demonstration
+----
+
+![Unfiltered](GitHubMedia/screenshots/PolarizationUnfiltered.jpg){:class="img-responsive"}
+
+
+
 Demo Settings
 ----
 - **Recursion depth** The maximum number of recursive reflection rays per pixel (e.g., with a recursion depth of `2` there will be one primary ray and up to two reflection rays per pixel).
