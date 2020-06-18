@@ -14,6 +14,25 @@ A demo project called `PolarizationDemo` is also included to compare the graphic
 For more information about the underlying theory and the implementation, see the included [thesis \[pdf\]](https://github.com/viktor4006094/DegreeProject/blob/master/GitHubMedia/Documents/Thesis.pdf).
 
 
+Polarizing filter demonstration
+----
+<p align="center">
+
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="425"/> |
+|:---:|
+| Unfiltered output |
+
+| **Polarization** renderer | **Hybrid** renderer |
+|:---:|:---:|
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/PolarizationVer.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/HybridVer.jpg" width="425"/> |
+| Vertically angled filter | Vertically angled filter |
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/PolarizationHor.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/HybridHor.jpg" width="425"/> |
+| Horizontally angled filter | Horizontally angled filter |
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/PolarizationDOP.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/master/GitHubMedia/Screenshots/HybridDOP.jpg" width="425"/> |
+| Degree of Polarization | Degree of Polarization |
+
+</p>
+
 Demo Settings
 ----
 - **Recursion depth** The maximum number of recursive reflection rays per pixel (e.g., with a recursion depth of `2` there will be one primary ray and up to two reflection rays per pixel).
