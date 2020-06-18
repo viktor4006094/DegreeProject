@@ -17,7 +17,7 @@ For more information about the underlying theory and the implementation, see the
 Polarizing filter demonstration
 ----
 
-<img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="500"/> <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="500"/>
+<img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="450"/> <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="450"/>
 
 
 
