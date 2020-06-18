@@ -22,20 +22,14 @@ Polarizing filter demonstration
 |:---:|
 | Unfiltered output |
 
+| Polarization renderer | Hybrid renderer |
+|:---:|:---:|
 | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/HybridVer.jpg" width="425"/> |
-|:---:|:---:|
 | Vertically angled filter | Vertically angled filter |
-| Polarization renderer | Hybrid renderer |
-
 | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationHor.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/HybridHor.jpg" width="425"/> |
-|:---:|:---:|
 | Horizontally angled filter | Horizontally angled filter |
-| Polarization renderer | Hybrid renderer |
-
 | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationDOP.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/HybridDOP.jpg" width="425"/> |
-|:---:|:---:|
 | Degree of Polarization | Degree of Polarization |
-| Polarization renderer | Hybrid renderer |
 
 </p>
 
