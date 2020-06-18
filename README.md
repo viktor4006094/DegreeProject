@@ -18,11 +18,11 @@ Polarizing filter demonstration
 ----
 <p align="center">
 
-| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="450"/> |
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="425"/> |
 |:---:|
 | Some text |
 
-| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="450"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="450"/> |
+| <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationUnfiltered.jpg" width="425"/> | <img src="https://raw.githubusercontent.com/viktor4006094/DegreeProject/readmeImages/GitHubMedia/Screenshots/PolarizationVer.jpg" width="425"/> |
 |:---:|:---:|
 | Some text | Some other text |
 
